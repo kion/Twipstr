@@ -380,6 +380,7 @@ public class FrontEnd {
 		toolBar.addSeparator();
 		
 		final ImageIcon progressIcon = new ImageIcon(FrontEnd.class.getResource("/name/kion/twipstr/res/progress.png"));
+		
 		final ImageIcon attachIcon = new ImageIcon(FrontEnd.class.getResource("/name/kion/twipstr/res/attach.png"));
 		buttAttach = new JButton("");
 		buttAttach.setIcon(attachIcon);
@@ -398,7 +399,7 @@ public class FrontEnd {
 					buttAttach.setIcon(progressIcon);
 					buttAttach.setText("Uploading...");
 					buttAttach.setEnabled(false);
-            		SwingUtilities.invokeLater(new Runnable(){
+					SwingUtilities.invokeLater(new Runnable() {
 						@Override
 						public void run() {
 							try {
@@ -411,7 +412,7 @@ public class FrontEnd {
 			                		}
 								}
 							} catch (BackEndException bee) {
-								NotificationService.errorMessage(bee);
+								NotificationService.errorMessage(bee, frameTwipstr);
 							} finally {
 								buttAttach.setIcon(attachIcon);
 								buttAttach.setText("");
@@ -419,7 +420,7 @@ public class FrontEnd {
 								statusTextArea.requestFocusInWindow();
 							}
 						}
-            		});
+					});
                 } else {
 					statusTextArea.requestFocusInWindow();
                 }
@@ -427,21 +428,36 @@ public class FrontEnd {
 		});
 		toolBar.add(buttAttach);
 
+		final ImageIcon shortenURLIcon = new ImageIcon(FrontEnd.class.getResource("/name/kion/twipstr/res/shorten-url.png"));
 		buttShortenURLs = new JButton("");
 		buttShortenURLs.setToolTipText("Shorten URL");
-		buttShortenURLs.setIcon(new ImageIcon(FrontEnd.class.getResource("/name/kion/twipstr/res/shorten-url.png")));
+		buttShortenURLs.setIcon(shortenURLIcon);
 		buttShortenURLs.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				String url = JOptionPane.showInputDialog(frameTwipstr, "Original URL:");
+				final String url = JOptionPane.showInputDialog(frameTwipstr, "Original URL:");
 				if (!Validator.isNullOrBlank(url)) {
-					try {
-            			insertURLWithSmartSpacing(BackEnd.shortenURL(url));
-					} catch (BackEndException bee) {
-						NotificationService.errorMessage(bee);
-					}
+					buttShortenURLs.setIcon(progressIcon);
+					buttShortenURLs.setText("Shortening...");
+					buttShortenURLs.setEnabled(false);
+					SwingUtilities.invokeLater(new Runnable() {
+						@Override
+						public void run() {
+							try {
+		            			insertURLWithSmartSpacing(BackEnd.shortenURL(url));
+							} catch (BackEndException bee) {
+								NotificationService.errorMessage(bee, frameTwipstr);
+							} finally {
+								buttShortenURLs.setIcon(shortenURLIcon);
+								buttShortenURLs.setText("");
+								buttShortenURLs.setEnabled(true);
+								statusTextArea.requestFocusInWindow();
+							}
+						}
+					});
+				} else {
+					statusTextArea.requestFocusInWindow();
 				}
-				statusTextArea.requestFocusInWindow();
 			}
 		});
 		
@@ -848,7 +864,7 @@ public class FrontEnd {
 				}
 			}
 		} catch (Throwable cause) {
-			NotificationService.errorMessage(cause);
+			NotificationService.errorMessage(cause, frameTwipstr);
 		} finally {
 			statusTextArea.requestFocusInWindow();
 		}
