@@ -14,7 +14,7 @@ import twitter4j.media.MediaProvider;
 public interface Constants {
 	
 	public static final String APP_INFO_NAME = "~ Twipstr ~";
-	public static final String APP_INFO_NAME_AND_VERSION = "~ Twipstr 1.0.1 ~";
+	public static final String APP_INFO_NAME_AND_VERSION = "~ Twipstr 1.0.2 ~";
 	public static final String APP_INFO_URL = "http://twipstr.sf.net";
 	public static final String APP_INFO_AUTHOR = "© R. Kasianenko (kion)";
 	public static final String APP_INFO_AUTHOR_URL = "http://kion.name";

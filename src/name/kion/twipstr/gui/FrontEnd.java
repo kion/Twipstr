@@ -854,8 +854,12 @@ public class FrontEnd {
 				if (BackEnd.updateStatus(statusTextArea.getText())) {
 					statusTextArea.setText("");
 					undoManager.discardAllEdits();
-					imagePanelsVisible.clear();
-					imagePanelsCache.clear();
+					if (imagePanelsVisible != null) {
+						imagePanelsVisible.clear();
+					}
+					if (imagePanelsCache != null) {
+						imagePanelsCache.clear();
+					}
 					reLayoutImages();
 					if (prefs.getBoolean(Constants.PROPERTY_USERPREF_CLOSE_WINDOW_AFTER_SUCCESSFUL_STATUS_UPDATE, false)) {
 						onExit();
