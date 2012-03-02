@@ -14,7 +14,7 @@ import twitter4j.media.MediaProvider;
 public interface Constants {
 	
 	public static final String APP_INFO_NAME = "~ Twipstr ~";
-	public static final String APP_INFO_NAME_AND_VERSION = "~ Twipstr 1.0.2 ~";
+	public static final String APP_INFO_NAME_AND_VERSION = "~ Twipstr 1.1.0 ~";
 	public static final String APP_INFO_URL = "http://twipstr.sf.net";
 	public static final String APP_INFO_AUTHOR = "© R. Kasianenko (kion)";
 	public static final String APP_INFO_AUTHOR_URL = "http://kion.name";
@@ -39,7 +39,18 @@ public interface Constants {
 	public static final String BITLY_TWIPSTR_USERNAME = "twipstr";
 	public static final String BITLY_TWIPSTR_API_KEY = "R_bfb4f98b9f8fc792909e5024295d98b1";
 	
-	public static final String DEFAULT_MEDIA_PROVIDER = MediaProvider.YFROG.getName();
+	public static final String DEFAULT_MEDIA_PROVIDER = 
+			MediaProvider.TWITTER.getName();
+	public static final String[] SUPPORTED_MEDIA_PROVIDERS = new String[]{
+			DEFAULT_MEDIA_PROVIDER,
+			MediaProvider.YFROG.getName(),
+			MediaProvider.TWITPIC.getName(),
+			MediaProvider.TWITGOO.getName(),
+			MediaProvider.TWIPPLE.getName(),
+			MediaProvider.PLIXI.getName(),
+			MediaProvider.IMG_LY.getName()
+	};
+	
 	public static final String TWITPIC_TWIPSTR_API_KEY = "9e03e2868fc10ef51329bc698b65e227";
 	public static final String PLIXI_TWIPSTR_API_KEY = "038b9de7-d718-44d4-b248-e9674b29b7d6";
 	
@@ -54,7 +65,7 @@ public interface Constants {
     public static final String PROPERTY_FONT_SIZE = "FONT_SIZE";
     
     public static final String PROPERTY_SHORTCUTS = "SHORTCUTS";
-    public static final String DEFAULT_SHORTCUTS = "♥\n★\n⚒\n☯\n⚙\n♚\n♨\n☕\n♪\n✔\n✘\n⚠\n☺\n☹\n✇\n©\n✌\n⚑\n☼\n☾\n…\n➣\n➤\n❰\n❱\n⇄\n⇅\n✪\n☆\n⚛\n⚖\n⚚\n⚗\n⚘\n☤\n⚜\n❁\n❂\n☸\n☂\n☔\n❄\n⚡\n☄\n☚\n☛\n☎\n✆\n✉\n✎\n✍\n⌨\n⌘\n✵\n✈\n⚓\n☮\n⚔\n☠\n☢\n☣\n♻\n⚈\n♣\n♦\n♠\n⚅\n♀\n♂\n⚤\n∞\n®\n™\n˚\n•\n";
+    public static final String DEFAULT_SHORTCUTS = "♥\n★\n⚒\n☯\n⚙\n♚\n♨\n☕\n♪\n✔\n✘\n⚠\n☺\n☹\n✇\n©\n✌\n⚑\n☼\n☾\n…\n☚\n☛\n➣\n➤\n❰\n❱\n⇄\n⇅\n✪\n☆\n⚛\n⚖\n⚚\n⚗\n⚘\n☤\n⚜\n❁\n❂\n☸\n☂\n☔\n❄\n⚡\n☄\n☎\n✆\n✉\n✎\n✍\n⌨\n⌘\n✵\n✈\n⚓\n☮\n⚔\n☠\n☢\n☣\n♻\n⚈\n♣\n♦\n♠\n⚅\n♀\n♂\n⚤\n∞\n®\n™\n˚\n•\n";
     
     public static final String VALUES_SEPARATOR = "\n";
 

@@ -47,29 +47,33 @@ public class StaticImagePanel extends ImagePanel {
 			@Override
 			public void run() {
 		        try {
-					scaledImage = ImageUtils.getScaledImage(origImage, StaticImagePanel.this.getBounds().width, StaticImagePanel.this.getBounds().height);
-		            MediaTracker mt = new MediaTracker(StaticImagePanel.this);
-		            mt.addImage(scaledImage,0);
-		            try {
-		                mt.waitForID(0);
-		            } catch(InterruptedException ie){}
-		            if (mt.isErrorID(0)) {
-		                setSize(0,0);
-		                synchronized(this) {
-		                    painted = true;
-		                    notifyAll();
-		                }
-		                return;
-		            }
-		            if (!EventQueue.isDispatchThread() && Runtime.getRuntime().availableProcessors() == 1) {
-		                synchronized(this) {
-		                    while (!painted) {
-		                        try { 
-		                            wait(); 
-		                        } catch (InterruptedException e) {}
-		                    }
-		                }
-		            }
+		        	int w = StaticImagePanel.this.getBounds().width;
+		        	int h = StaticImagePanel.this.getBounds().height;
+		        	if (w > 0 && h > 0) {
+						scaledImage = ImageUtils.getScaledImage(origImage, w, h);
+			            MediaTracker mt = new MediaTracker(StaticImagePanel.this);
+			            mt.addImage(scaledImage,0);
+			            try {
+			                mt.waitForID(0);
+			            } catch(InterruptedException ie){}
+			            if (mt.isErrorID(0)) {
+			                setSize(0,0);
+			                synchronized(this) {
+			                    painted = true;
+			                    notifyAll();
+			                }
+			                return;
+			            }
+			            if (!EventQueue.isDispatchThread() && Runtime.getRuntime().availableProcessors() == 1) {
+			                synchronized(this) {
+			                    while (!painted) {
+			                        try { 
+			                            wait(); 
+			                        } catch (InterruptedException e) {}
+			                    }
+			                }
+			            }
+		        	}
 		        } catch (Throwable cause) {
 		        	cause.printStackTrace(System.err);
 		        } finally {

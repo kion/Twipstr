@@ -3,10 +3,15 @@
  */
 package name.kion.twipstr.backend;
 
+import java.awt.Component;
 import java.io.File;
+import java.util.HashSet;
+import java.util.Set;
 import java.util.prefs.Preferences;
 
+import javax.swing.JLabel;
 import javax.swing.JOptionPane;
+import javax.swing.JTextField;
 
 import name.kion.twipstr.Constants;
 import name.kion.twipstr.Twipstr;
@@ -14,15 +19,16 @@ import name.kion.twipstr.exception.BackEndException;
 import name.kion.twipstr.gui.NotificationService;
 import name.kion.twipstr.util.AppManager;
 import name.kion.twipstr.util.Validator;
+import twitter4j.StatusUpdate;
 import twitter4j.Twitter;
 import twitter4j.TwitterException;
 import twitter4j.TwitterFactory;
+import twitter4j.auth.AccessToken;
+import twitter4j.auth.RequestToken;
 import twitter4j.conf.Configuration;
 import twitter4j.conf.ConfigurationBuilder;
-import twitter4j.http.AccessToken;
-import twitter4j.http.RequestToken;
 import twitter4j.media.ImageUpload;
-import twitter4j.media.ImageUploaderFactory;
+import twitter4j.media.ImageUploadFactory;
 import twitter4j.media.MediaProvider;
 
 import com.rosaloves.bitlyj.Bitly;
@@ -37,6 +43,12 @@ public class BackEnd {
 	
 	private static ImageUpload imageUpload;
 	
+	private static Set<File> attachedMediaFiles;
+
+	// API configuration
+	private static int maxMediaPerUpload;
+	private static int charactersReservedPerMedia;
+	
 	private BackEnd() {
 		// hidden default constructor
 	}
@@ -49,11 +61,19 @@ public class BackEnd {
 				twitter.setOAuthConsumer(Constants.CONSUMER_KEY, Constants.CONSUMER_SECRET);
 				RequestToken requestToken = twitter.getOAuthRequestToken();
 				while (null == accessToken) {
-					AppManager.getInstance().handleAddress(requestToken.getAuthorizationURL());
+					String authorizationURL = requestToken.getAuthorizationURL();
+					AppManager.getInstance().handleAddress(authorizationURL);
 					String pin = JOptionPane.showInputDialog(
 							null,
-							"<html>OAuth has been requested via your default browser." + 
-							"<br/>Allow access for Twipstr and enter the PIN below:",
+							new Component[] {
+								new JTextField(authorizationURL),
+								new JLabel(
+										"<html>OAuth has been requested via your default browser<br/>" + 
+										"(if page hasn't been opened in browser automatically,<br/>" +
+										"copy URL in the text box above and paste it to your browser's address bar manually).<br/><br/>" + 
+										"Allow access for Twipstr and enter the PIN below:"
+									)
+							},
 							"Twipstr :: Allow access to your account",
 							JOptionPane.INFORMATION_MESSAGE);
 					try {
@@ -75,6 +95,7 @@ public class BackEnd {
 				twitter.setOAuthAccessToken(accessToken);
 			}
 			BackEnd.twitter = twitter;
+			loadAPIConfiguration();
 		} catch (Throwable cause) {
 			throw new BackEndException("Failed to initialize access token!", cause);
 		}
@@ -109,6 +130,11 @@ public class BackEnd {
 		} catch (Throwable cause) {
 			throw new BackEndException("Failed to store access token!", cause);
 		}
+	}
+	
+	private static void loadAPIConfiguration() throws TwitterException {
+		maxMediaPerUpload = twitter.getAPIConfiguration().getMaxMediaPerUpload();
+		charactersReservedPerMedia = twitter.getAPIConfiguration().getCharactersReservedPerMedia();
 	}
 	
 	public static Preferences loadPreferences() {
@@ -146,6 +172,15 @@ public class BackEnd {
 		imageUpload = null;
 	}
 	
+	public static boolean usingSeparateImageUploading() {
+		Preferences prefs = loadPreferences();
+		String mpName = prefs.get(Constants.PROPERTY_USERPREF_MEDIA_PROVIDER, Constants.DEFAULT_MEDIA_PROVIDER);
+		if (MediaProvider.TWITTER.getName().equals(mpName)) {
+			return false;
+		}
+		return true;
+	}
+	
 	public static String uploadImage(File imageFile) throws BackEndException {
 		try {
 			if (imageUpload == null) {
@@ -163,7 +198,7 @@ public class BackEnd {
 				}
 				confBuilder.setMediaProvider(mpName);
 				Configuration config = confBuilder.build();
-				imageUpload = new ImageUploaderFactory(config).getInstance();
+				imageUpload = new ImageUploadFactory(config).getInstance();
 			}
 			return imageUpload.upload(imageFile);
 		} catch (Throwable cause) {
@@ -171,9 +206,45 @@ public class BackEnd {
 		}
 	}
 	
+	public static int attachMedia(File mediaFile) throws BackEndException {
+		if (attachedMediaFiles == null) {
+			attachedMediaFiles = new HashSet<File>();
+		}
+		if (attachedMediaFiles.size() < maxMediaPerUpload) {
+			attachedMediaFiles.add(mediaFile);
+			return charactersReservedPerMedia;
+		} else {
+			throw new BackEndException("You can't attach more media files, max number of media attachments allowed: " + maxMediaPerUpload + 
+										"\nYou may try to choose another image-upload service in preferences.");
+		}
+	}
+	
+	public static int cancelMedia(String mediaFilePath) {
+		if (attachedMediaFiles != null) {
+			for (File f : attachedMediaFiles) {
+				if (f.getAbsolutePath().equals(mediaFilePath)) {
+					attachedMediaFiles.remove(f);
+					break;
+				}
+			}
+		}
+		if (attachedMediaFiles.isEmpty()) {
+			attachedMediaFiles = null;
+		}
+		return charactersReservedPerMedia;
+	}
+	
 	public static boolean updateStatus(String status) throws BackEndException {
 		try {
-			twitter.updateStatus(status);
+			StatusUpdate statusUpdate = new StatusUpdate(status);
+			if (attachedMediaFiles != null) {
+				for (File mediaFile : attachedMediaFiles) {
+					// it should theoretically be possible to attach more than one media file
+					statusUpdate.setMedia(mediaFile);
+				}
+			}
+			twitter.updateStatus(statusUpdate);
+			attachedMediaFiles = null;
 			return true;
 		} catch (TwitterException te) {
 			if (401 == te.getStatusCode()) {

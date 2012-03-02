@@ -29,7 +29,6 @@ import java.awt.event.WindowEvent;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.prefs.Preferences;
@@ -61,7 +60,6 @@ import name.kion.twipstr.Constants;
 import name.kion.twipstr.backend.BackEnd;
 import name.kion.twipstr.exception.BackEndException;
 import name.kion.twipstr.util.Validator;
-import twitter4j.media.MediaProvider;
 
 /**
  * @author kion
@@ -87,6 +85,8 @@ public class FrontEnd {
 	
 	private List<ImagePanel> imagePanelsVisible;
 	private List<ImagePanel> imagePanelsCache;
+	
+	private int maxLength = 140;
 	
 	private JFrame frameTwipstr;
 	private JPanel panelMain;
@@ -116,13 +116,13 @@ public class FrontEnd {
 			public void run() {
 				try {
 					final FrontEnd window = new FrontEnd();
-					window.frameTwipstr.setVisible(true);
 					window.frameTwipstr.addWindowListener(new WindowAdapter() {
 						@Override
 						public void windowClosing(WindowEvent e) {
 							window.onExit();
 						}
 					});
+					window.frameTwipstr.setVisible(true);
 				} catch (Exception e) {
 					e.printStackTrace();
 				}
@@ -262,12 +262,9 @@ public class FrontEnd {
 				cbCloseAfterSuccessfulStatusUpdate.setSelected(prefs.getBoolean(Constants.PROPERTY_USERPREF_CLOSE_WINDOW_AFTER_SUCCESSFUL_STATUS_UPDATE, false));
 				JLabel labelImageUploadService = new JLabel("Preferred image upload service:");
 				JComboBox cbImageUploadService = new JComboBox();
-				cbImageUploadService.addItem(MediaProvider.YFROG.getName());
-				cbImageUploadService.addItem(MediaProvider.TWITPIC.getName());
-				cbImageUploadService.addItem(MediaProvider.TWITGOO.getName());
-				cbImageUploadService.addItem(MediaProvider.TWIPPLE.getName());
-				cbImageUploadService.addItem(MediaProvider.PLIXI.getName());
-				cbImageUploadService.addItem(MediaProvider.IMG_LY.getName());
+				for (String mp : Constants.SUPPORTED_MEDIA_PROVIDERS) {
+					cbImageUploadService.addItem(mp);
+				}
 				String currentMediaProvider = prefs.get(Constants.PROPERTY_USERPREF_MEDIA_PROVIDER, Constants.DEFAULT_MEDIA_PROVIDER);
 				cbImageUploadService.setSelectedItem(currentMediaProvider);
 				JLabel labelBitly = new JLabel(
@@ -405,11 +402,18 @@ public class FrontEnd {
 							try {
 								File imageFile = jFileChooser.getSelectedFile();
 								if (imageFile != null) {
-			                		String imageURL = BackEnd.uploadImage(imageFile);
-			                		if (!Validator.isNullOrBlank(imageURL)) {
-										insertURLWithSmartSpacing(imageURL);
-			                			attachImage(imageFile, imageURL);
-			                		}
+									String imageURL;
+									if (BackEnd.usingSeparateImageUploading()) {
+				                		imageURL = BackEnd.uploadImage(imageFile);
+				                		if (!Validator.isNullOrBlank(imageURL)) {
+											insertURLWithSmartSpacing(imageURL);
+				                		}
+									} else {
+										maxLength -= BackEnd.attachMedia(imageFile);
+										updateCounter();
+										imageURL = imageFile.getAbsolutePath();
+									}
+		                			attachImage(imageFile, imageURL);
 								}
 							} catch (BackEndException bee) {
 								NotificationService.errorMessage(bee, frameTwipstr);
@@ -466,7 +470,7 @@ public class FrontEnd {
 
 		buttPost = new JButton("");
 		buttPost.setHorizontalTextPosition(SwingConstants.LEFT);
-		buttPost.setText("140");
+		buttPost.setText("" + maxLength);
 		buttPost.setToolTipText("Number Of Characters Left");
 		buttPost.setFont(Constants.FONT);
 		buttPost.setForeground(Constants.COLOR_OK);
@@ -508,7 +512,6 @@ public class FrontEnd {
 	
 	private void attachImage(File imageFile, String imageURL) {
 		try {
-			
 			ImagePanel imagePanel = ImagePanelFactory.buildImagePanel(imageFile, IMG_BG_COLOR);
 
 			imagePanel.setPreferredSize(getImageSize());
@@ -533,7 +536,7 @@ public class FrontEnd {
 		if (imagePanelsCache != null && !imagePanelsCache.isEmpty()) {
 			List<ImagePanel> pl = null;
 			for (ImagePanel imagePanel : imagePanelsCache) {
-				if (statusTextArea.getText().contains(imagePanel.getName())) {
+				if (imagePanel.getName().startsWith("http") && statusTextArea.getText().contains(imagePanel.getName())) {
 					if (pl == null) {
 						pl = new ArrayList<ImagePanel>();
 					}
@@ -548,7 +551,7 @@ public class FrontEnd {
 		if (imagePanelsVisible != null && !imagePanelsVisible.isEmpty()) {
 			List<ImagePanel> pl = null;
 			for (ImagePanel imagePanel : imagePanelsVisible) {
-				if (!statusTextArea.getText().contains(imagePanel.getName())) {
+				if (imagePanel.getName().startsWith("http") && !statusTextArea.getText().contains(imagePanel.getName())) {
 					if (pl == null) {
 						pl = new ArrayList<ImagePanel>();
 					}
@@ -585,10 +588,14 @@ public class FrontEnd {
 					public void mouseClicked(MouseEvent e) {
 						removeVisibleImagePanel(ip);
 						panelImages.remove(imageFrame);
-						int idx = statusTextArea.getText().indexOf(ip.getName());
+						String imageURL = ip.getName();
+						int idx = statusTextArea.getText().indexOf(imageURL);
 						if (idx != -1) {
-							statusTextArea.setText(statusTextArea.getText().replace(ip.getName(), ""));
+							statusTextArea.replaceRange("", idx, idx + imageURL.length());
 							statusTextArea.setCaretPosition(idx);
+						} else {
+							maxLength += BackEnd.cancelMedia(ip.getName());
+							updateCounter();
 						}
 						if (imagePanelsVisible.isEmpty()) {
 							panelImages.setVisible(false);
@@ -607,14 +614,14 @@ public class FrontEnd {
 	
 	private void addVisibleImagePanel(ImagePanel imagePanel) {
 		if (imagePanelsVisible == null) {
-			imagePanelsVisible = new LinkedList<ImagePanel>();
+			imagePanelsVisible = new ArrayList<ImagePanel>();
 		}
 		imagePanelsVisible.add(imagePanel);
 	}
 	
 	private void addVisibleImagePanels(List<ImagePanel> imagePanels) {
 		if (imagePanelsVisible == null) {
-			imagePanelsVisible = new LinkedList<ImagePanel>();
+			imagePanelsVisible = new ArrayList<ImagePanel>();
 		}
 		imagePanelsVisible.addAll(imagePanels);
 	}
@@ -635,14 +642,14 @@ public class FrontEnd {
 
 	private void cacheImagePanel(ImagePanel imagePanel) {
 		if (imagePanelsCache == null) {
-			imagePanelsCache = new LinkedList<ImagePanel>();
+			imagePanelsCache = new ArrayList<ImagePanel>();
 		}
 		imagePanelsCache.add(imagePanel);
 	}
 
 	private void cacheImagePanels(List<ImagePanel> imagePanels) {
 		if (imagePanelsCache == null) {
-			imagePanelsCache = new LinkedList<ImagePanel>();
+			imagePanelsCache = new ArrayList<ImagePanel>();
 		}
 		imagePanelsCache.addAll(imagePanels);
 	}
@@ -655,55 +662,63 @@ public class FrontEnd {
 	}
 	
 	private void restoreState() {
-		prefs = BackEnd.loadPreferences();
-		
-		int wpxValue = prefs.getInt(Constants.PROPERTY_WINDOW_COORDINATE_X, frameTwipstr.getToolkit().getScreenSize().width / 4);
-		int wpyValue = prefs.getInt(Constants.PROPERTY_WINDOW_COORDINATE_Y, frameTwipstr.getToolkit().getScreenSize().height / 4);
-		int wwValue = prefs.getInt(Constants.PROPERTY_WINDOW_WIDTH, Constants.DEFAULT_WINDOW_WIDTH);
-		int whValue = prefs.getInt(Constants.PROPERTY_WINDOW_HEIGHT, Constants.DEFAULT_WINDOW_HEIGHT);
-		frameTwipstr.setLocation(wpxValue, wpyValue);
-		frameTwipstr.setSize(wwValue, whValue);
-		
-		int fontSize = prefs.getInt(Constants.PROPERTY_FONT_SIZE, -1);
-		if (fontSize != -1) {
-			Font font = new Font(Constants.FONT.getName(), Constants.FONT.getStyle(), fontSize);
-			statusTextArea.setFont(font);
-		}
-		
-		String text = prefs.get(Constants.PROPERTY_TEXT, null);
-		if (text != null) {
-			statusTextArea.getDocument().removeUndoableEditListener(undoableEditListener);
-			statusTextArea.setText(text);
-			statusTextArea.getDocument().addUndoableEditListener(undoableEditListener);
-		}
-		
-		String imageURLs = prefs.get(Constants.PROPERTY_IMAGE_URLS, null);
-		if (!Validator.isNullOrBlank(imageURLs)) {
-			String[] imageURLsArr = imageURLs.split(Constants.VALUES_SEPARATOR);
-			for (String imageURL : imageURLsArr) {
-				String imagePath = prefs.get(Constants.PROPERTY_PREFIX_IMAGE.concat(imageURL), null);
-				if (imagePath != null) {
-					File imageFile = new File(imagePath);
-					if (imageFile.exists()) {
-						attachImage(imageFile, imageURL);
+		try {
+			prefs = BackEnd.loadPreferences();
+			
+			int wpxValue = prefs.getInt(Constants.PROPERTY_WINDOW_COORDINATE_X, frameTwipstr.getToolkit().getScreenSize().width / 4);
+			int wpyValue = prefs.getInt(Constants.PROPERTY_WINDOW_COORDINATE_Y, frameTwipstr.getToolkit().getScreenSize().height / 4);
+			int wwValue = prefs.getInt(Constants.PROPERTY_WINDOW_WIDTH, Constants.DEFAULT_WINDOW_WIDTH);
+			int whValue = prefs.getInt(Constants.PROPERTY_WINDOW_HEIGHT, Constants.DEFAULT_WINDOW_HEIGHT);
+			frameTwipstr.setLocation(wpxValue, wpyValue);
+			frameTwipstr.setSize(wwValue, whValue);
+			
+			int fontSize = prefs.getInt(Constants.PROPERTY_FONT_SIZE, -1);
+			if (fontSize != -1) {
+				Font font = new Font(Constants.FONT.getName(), Constants.FONT.getStyle(), fontSize);
+				statusTextArea.setFont(font);
+			}
+			
+			String text = prefs.get(Constants.PROPERTY_TEXT, null);
+			if (text != null) {
+				statusTextArea.getDocument().removeUndoableEditListener(undoableEditListener);
+				statusTextArea.setText(text);
+				statusTextArea.getDocument().addUndoableEditListener(undoableEditListener);
+			}
+			
+			String imageURLs = prefs.get(Constants.PROPERTY_IMAGE_URLS, null);
+			if (!Validator.isNullOrBlank(imageURLs)) {
+				String[] imageURLsArr = imageURLs.split(Constants.VALUES_SEPARATOR);
+				for (String imageURL : imageURLsArr) {
+					String imagePath = prefs.get(Constants.PROPERTY_PREFIX_IMAGE.concat(imageURL), null);
+					if (imagePath != null) {
+						File imageFile = new File(imagePath);
+						if (imageFile.exists()) {
+							if (!imageURL.startsWith("http")) {
+								maxLength -= BackEnd.attachMedia(imageFile);
+								updateCounter();
+							}
+							attachImage(imageFile, imageURL);
+						}
 					}
 				}
 			}
-		}
-		
-		String lastImgDirPath = prefs.get(Constants.PROPERTY_LAST_IMG_DIR, null);
-		if (!Validator.isNullOrBlank(lastImgDirPath)) {
-			lastFileChooserDir = new File(lastImgDirPath);
-			if (!lastFileChooserDir.isDirectory()) {
-				lastFileChooserDir = null;
+			
+			String lastImgDirPath = prefs.get(Constants.PROPERTY_LAST_IMG_DIR, null);
+			if (!Validator.isNullOrBlank(lastImgDirPath)) {
+				lastFileChooserDir = new File(lastImgDirPath);
+				if (!lastFileChooserDir.isDirectory()) {
+					lastFileChooserDir = null;
+				}
 			}
-		}
+			
+			String[] shortcuts = prefs.get(Constants.PROPERTY_SHORTCUTS, Constants.DEFAULT_SHORTCUTS).split(Constants.VALUES_SEPARATOR);
+			for (String shortcut : shortcuts) {
+				addShortcutButton("" + shortcut);
+			}
 		
-		String[] shortcuts = prefs.get(Constants.PROPERTY_SHORTCUTS, Constants.DEFAULT_SHORTCUTS).split(Constants.VALUES_SEPARATOR);
-		for (String shortcut : shortcuts) {
-			addShortcutButton("" + shortcut);
+		} catch (Throwable cause) {
+			cause.printStackTrace(System.err);
 		}
-		
 	}
 
 	private void persistState() {
@@ -728,11 +743,11 @@ public class FrontEnd {
 				
 				String imageURLs = null;
 				if (imagePanelsVisible == null || imagePanelsVisible.isEmpty()) {
-						prefs.remove(Constants.PROPERTY_IMAGE_URLS);
+					prefs.remove(Constants.PROPERTY_IMAGE_URLS);
 				} else {
 					for (JPanel ip : imagePanelsVisible) {
 						String imageURL = ip.getName();
-						prefs.put(Constants.PROPERTY_PREFIX_IMAGE.concat(imageURL), imageFiles.get(imageURL));
+						prefs.put(Constants.PROPERTY_PREFIX_IMAGE.concat(imageURL != null ? imageURL : ""), imageFiles.get(imageURL));
 						if (imageURLs == null) {
 							imageURLs = imageURL;
 						} else {
@@ -823,7 +838,7 @@ public class FrontEnd {
 	}
 	
 	private void updateCounter() {
-		int charsLeft = 140 - statusTextArea.getText().length();
+		int charsLeft = maxLength - statusTextArea.getText().length();
 		Color color;
 		if (charsLeft < 0) {
 			color = Constants.COLOR_OVER_LIMIT;
@@ -850,8 +865,9 @@ public class FrontEnd {
 	
 	private void postStatus() {
 		try {
-			if (!Validator.isNullOrBlank(statusTextArea.getText()) && statusTextArea.getText().length() <= 140) {
+			if (!Validator.isNullOrBlank(statusTextArea.getText()) && statusTextArea.getText().length() <= maxLength) {
 				if (BackEnd.updateStatus(statusTextArea.getText())) {
+					maxLength = 140;
 					statusTextArea.setText("");
 					undoManager.discardAllEdits();
 					if (imagePanelsVisible != null) {
