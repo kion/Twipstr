@@ -8,11 +8,11 @@ Installation
 
 * If you're running Ubuntu, it's recommended to install Twipstr via PPA-repository using the following command:
 
-sudo add-apt-repository ppa:ki0n/desktop-apps && sudo apt-get update && sudo apt-get install twipstr
+	sudo add-apt-repository ppa:ki0n/desktop-apps && sudo apt-get update && sudo apt-get install twipstr
 
 * If you're running other Debian-based distro, you can simply download/install DEB package and run Twipstr using "Applications -> Internet -> Twipstr" menu item or "twipstr" command
 
-* Otherwise, put twipstr.jar file into the folder of your choice and double-click it or run using "java -jar twipstr.jar" command 
+* Otherwise, put "twipstr.jar" file into the folder of your choice and double-click it or run using "java -jar twipstr.jar" command 
 
 NOTE: You must have Java installed to run Twipstr.
 If you don't have it installed yet, you can download it from here: http://www.java.com/download
