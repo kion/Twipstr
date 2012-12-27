@@ -1,14 +1,35 @@
 Twipstr :: Makes it more fun to update your Twitter status!
 
-Put twipstr.jar file into the folder of your choice and double-click it or run using java -jar twipstr.jar command.
-(creating a global shortcut/hotkey to run Twipstr is a good idea as well! ;))
+☛ http://twipstr.sf.net
+
+====================================
+
+Installation
+
+* If you're running Ubuntu, it's recommended to install Twipstr via PPA-repository using the following command:
+
+sudo add-apt-repository ppa:ki0n/desktop-apps && sudo apt-get update && sudo apt-get install twipstr
+
+* If you're running other Debian-based distro, you can simply download/install DEB package and run Twipstr using "Applications -> Internet -> Twipstr" menu item or "twipstr" command
+
+* Otherwise, put twipstr.jar file into the folder of your choice and double-click it or run using "java -jar twipstr.jar" command 
 
 NOTE: You must have Java installed to run Twipstr.
 If you don't have it installed yet, you can download it from here: http://www.java.com/download
+(Installing from DEB or PPA resolves dependencies automatically though ;))
 
-Need support or have suggestions? Get in touch with me on Twitter: http://twitter.com/kion ;)
+====================================
+
+Download
+
+* JAR -> http://sourceforge.net/projects/twipstr/files/twipstr.jar
+* DEB -> http://sourceforge.net/projects/twipstr/files/twipstr.deb
+
+====================================
 
 Twipstr is Free and Open Source software (distributed under the GNU General Public License).
 Source code is hosted on GitHub: https://github.com/kion/Twipstr
+
+Need support or have suggestions? Get in touch with me on Twitter: http://twitter.com/kion ;)
 
 © http://kion.name

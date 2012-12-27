@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<project default="createRunJar" name="Twipstr">
+    <target name="createRunJar">
+        <jar destfile="build/twipstr.jar" filesetmanifest="mergewithoutmain">
+            <manifest>
+                <attribute name="Main-Class" value="name.kion.twipstr.Twipstr"/>
+                <attribute name="Class-Path" value="."/>
+            </manifest>
+            <fileset dir="bin"/>
+            <zipfileset excludes="META-INF/*.SF" src="lib/twitter4j-core.jar"/>
+            <zipfileset excludes="META-INF/*.SF" src="lib/twitter4j-media-support.jar"/>
+            <zipfileset excludes="META-INF/*.SF" src="lib/bitlyj.jar"/>
+        </jar>
+    </target>
+</project>
