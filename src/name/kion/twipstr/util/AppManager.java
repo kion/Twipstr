@@ -25,7 +25,6 @@ public class AppManager {
     }
 
     public void handleAddress(String address) throws Exception {
-        
         if (address.contains("@")) {
             if (!desktop.isSupported(Desktop.Action.MAIL)) {
                 throw new Exception("Desktop Mail API is not available on this platform!");
@@ -42,7 +41,6 @@ public class AppManager {
             URI uri = new URI(address);
             desktop.browse(uri);
         }
-        
     }
 
     public void handleFile(File file) throws Exception {

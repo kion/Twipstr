@@ -10,8 +10,6 @@ import name.kion.twipstr.gui.FrontEnd;
 import name.kion.twipstr.gui.NotificationService;
 
 
-import com.sun.java.swing.plaf.nimbus.NimbusLookAndFeel;
-
 /**
  * @author kion
  */
@@ -22,10 +20,11 @@ public class Twipstr {
 			System.setProperty("swing.aatext", "true");
 			System.setProperty("awt.useSystemAAFontSettings", "on");
 			try {
-				UIManager.setLookAndFeel(new NimbusLookAndFeel());
+				String laf = BackEnd.loadPreferences().get(Constants.PROPERTY_LAF, Constants.DEFAULT_LAF);
+				UIManager.setLookAndFeel(Constants.SUPPORTED_LAFS.get(laf));
 			} catch (Throwable cause) {
-				// ignore, default Look-And-Feel will be used
-				cause.printStackTrace();
+				// ignore (automatic fallback to system/default Look-And-Feel)
+				cause.printStackTrace(System.err);
 			}
 			BackEnd.init();
 			FrontEnd.init();

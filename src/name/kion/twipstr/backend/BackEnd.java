@@ -4,6 +4,9 @@
 package name.kion.twipstr.backend;
 
 import java.awt.Component;
+import java.awt.Toolkit;
+import java.awt.datatransfer.Clipboard;
+import java.awt.datatransfer.StringSelection;
 import java.io.File;
 import java.util.HashSet;
 import java.util.Set;
@@ -55,52 +58,73 @@ public class BackEnd {
 
 	public static void init() throws BackEndException {
 		try {
+			boolean twitterAuthorized = false;
 			Twitter twitter = new TwitterFactory().getInstance();
+			twitter.setOAuthConsumer(Constants.CONSUMER_KEY, Constants.CONSUMER_SECRET);
 			AccessToken accessToken = BackEnd.loadAccessToken();
-			if (accessToken == null) {
-				twitter.setOAuthConsumer(Constants.CONSUMER_KEY, Constants.CONSUMER_SECRET);
-				RequestToken requestToken = twitter.getOAuthRequestToken();
-				while (null == accessToken) {
-					String authorizationURL = requestToken.getAuthorizationURL();
-					AppManager.getInstance().handleAddress(authorizationURL);
-					String pin = JOptionPane.showInputDialog(
-							null,
-							new Component[] {
-								new JTextField(authorizationURL),
-								new JLabel(
-										"<html>OAuth has been requested via your default browser<br/>" + 
-										"(if page hasn't been opened in browser automatically,<br/>" +
-										"copy URL in the text box above and paste it to your browser's address bar manually).<br/><br/>" + 
-										"Allow access for Twipstr and enter the PIN below:"
-									)
-							},
-							"Twipstr :: Allow access to your account",
-							JOptionPane.INFORMATION_MESSAGE);
-					try {
-						if (!Validator.isNullOrBlank(pin)) {
-							accessToken = twitter.getOAuthAccessToken(requestToken, pin);
-						} else {
-							accessToken = twitter.getOAuthAccessToken();
-						}
-						BackEnd.storeAccessToken(accessToken);
-					} catch (TwitterException te) {
-						if (401 == te.getStatusCode()) {
-							System.out.println("Unable to get the access token!");
-						}
-						throw te;
+			if (accessToken != null) {
+				try {
+					twitter.setOAuthAccessToken(accessToken);
+					twitter.verifyCredentials();
+					twitterAuthorized = true;
+				} catch (TwitterException e) {
+					if (e.getStatusCode() == 401) {
+						twitter.setOAuthAccessToken(null);
 					}
 				}
-			} else {
-				twitter.setOAuthConsumer(Constants.CONSUMER_KEY, Constants.CONSUMER_SECRET);
-				twitter.setOAuthAccessToken(accessToken);
 			}
-			BackEnd.twitter = twitter;
-			loadAPIConfiguration();
+			if (!twitterAuthorized) {
+				RequestToken requestToken = twitter.getOAuthRequestToken();
+				String authURL = requestToken.getAuthorizationURL();
+				StringSelection stringSelection = new StringSelection(authURL);
+				Clipboard clipboard = Toolkit.getDefaultToolkit().getSystemClipboard();
+				clipboard.setContents(stringSelection, null);
+				try {
+					AppManager.getInstance().handleAddress(authURL);
+				} catch (Throwable cause) {
+					// ignore
+				}
+				String pin = JOptionPane.showInputDialog(
+						null,
+						new Component[] {
+							new JTextField(authURL),
+							new JLabel(
+									"<html>OAuth has been requested via your default browser.<br/>" + 
+									"If page hasn't been opened in browser automatically,<br/>" +
+									"paste URL provided above (copied to clipboard) to your browser's address bar manually.<br/><br/>" + 
+									"Authorize app to use your Twitter account and enter generated PIN below:"
+								)
+						},
+						"Twipstr :: Authorize",
+						JOptionPane.INFORMATION_MESSAGE);
+				if (Validator.isNullOrBlank(pin)) {
+					System.exit(0);
+				} else {
+					accessToken = twitter.getOAuthAccessToken(requestToken, pin);
+					try {
+						twitter.setOAuthAccessToken(accessToken);
+						twitter.verifyCredentials();
+						twitterAuthorized = true;
+					} catch (TwitterException te) {
+						if (te.getStatusCode() == 401) {
+							twitter.setOAuthAccessToken(null);
+						}
+					}
+				}
+			}
+			if (twitterAuthorized) {
+				BackEnd.storeAccessToken(accessToken);
+				BackEnd.twitter = twitter;
+				loadAPIConfiguration();
+			} else {
+				NotificationService.errorMessage("Application has not been authorized!");
+				System.exit(0);
+			}
 		} catch (Throwable cause) {
 			throw new BackEndException("Failed to initialize access token!", cause);
 		}
 	}
-
+	
 	private static AccessToken loadAccessToken() throws BackEndException {
 		try {
 			AccessToken accessToken = null;
@@ -175,7 +199,7 @@ public class BackEnd {
 	public static boolean usingSeparateImageUploading() {
 		Preferences prefs = loadPreferences();
 		String mpName = prefs.get(Constants.PROPERTY_USERPREF_MEDIA_PROVIDER, Constants.DEFAULT_MEDIA_PROVIDER);
-		if (MediaProvider.TWITTER.getName().equals(mpName)) {
+		if (MediaProvider.TWITTER.name().equals(mpName)) {
 			return false;
 		}
 		return true;
@@ -191,10 +215,12 @@ public class BackEnd {
 				confBuilder.setOAuthConsumerSecret(Constants.CONSUMER_SECRET);
 				confBuilder.setOAuthAccessToken(twitter.getOAuthAccessToken().getToken());
 				confBuilder.setOAuthAccessTokenSecret(twitter.getOAuthAccessToken().getTokenSecret());
-				if (MediaProvider.TWITPIC.getName().equals(mpName)) {
+				if (MediaProvider.TWITPIC.name().equals(mpName)) {
 					confBuilder.setMediaProviderAPIKey(Constants.TWITPIC_TWIPSTR_API_KEY);
-				} else if (MediaProvider.PLIXI.getName().equals(mpName)) {
+				} else if (MediaProvider.PLIXI.name().equals(mpName)) {
 					confBuilder.setMediaProviderAPIKey(Constants.PLIXI_TWIPSTR_API_KEY);
+				} else if (MediaProvider.MOBYPICTURE.name().equals(mpName)) {
+					confBuilder.setMediaProviderAPIKey(Constants.MOBYPICTURE_TWIPSTR_API_KEY);
 				}
 				confBuilder.setMediaProvider(mpName);
 				Configuration config = confBuilder.build();
