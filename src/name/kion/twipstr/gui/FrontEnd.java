@@ -20,6 +20,8 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.ComponentAdapter;
 import java.awt.event.ComponentEvent;
+import java.awt.event.ItemEvent;
+import java.awt.event.ItemListener;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 import java.awt.event.MouseAdapter;
@@ -62,8 +64,6 @@ import javax.swing.SwingConstants;
 import javax.swing.SwingUtilities;
 import javax.swing.UIManager;
 import javax.swing.border.LineBorder;
-import javax.swing.event.ChangeEvent;
-import javax.swing.event.ChangeListener;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 import javax.swing.event.UndoableEditEvent;
@@ -177,7 +177,7 @@ public class FrontEnd {
 	private void initGUI() {
 		frameTwipstr = new JFrame();
 		frameTwipstr.setIconImage(Toolkit.getDefaultToolkit().getImage(FrontEnd.class.getResource("/name/kion/twipstr/res/app-icon.png")));
-		frameTwipstr.setTitle(Constants.APP_INFO_NAME);
+		frameTwipstr.setTitle(Constants.APP_INFO_NAME_AND_VERSION);
 		frameTwipstr.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		
 		panelMain = new JPanel();
@@ -307,21 +307,23 @@ public class FrontEnd {
 
 		btnToggleSymbols = new JToggleButton();
 		btnToggleSymbols.setFocusable(false);
-		btnToggleSymbols.addChangeListener(new ChangeListener() {
-			public void stateChanged(ChangeEvent e) {
-				if (btnToggleSymbols.isSelected()) {
+		btnToggleSymbols.addItemListener(new ItemListener() {
+			@Override
+			public void itemStateChanged(ItemEvent e) {
+				boolean selected = ItemEvent.SELECTED == e.getStateChange();
+				if (selected) {
 					if (dividerLocation > dividerSize) {
 						splitPane.setDividerLocation(dividerLocation);
 					} else {
 						splitPane.setDividerLocation(0.25);
 					}
 				}
-				splitPane.setDividerSize(btnToggleSymbols.isSelected() ? dividerSize : 0);
-				panelSymbols.setVisible(btnToggleSymbols.isSelected());
-				btnEditSymbols.setVisible(btnToggleSymbols.isSelected());
-				btnDeleteSymbols.setVisible(btnToggleSymbols.isSelected());
-				btnAddSymbols.setVisible(btnToggleSymbols.isSelected());
-				if (btnToggleSymbols.isSelected() && symbolsTabPane == null) {
+				splitPane.setDividerSize(selected ? dividerSize : 0);
+				panelSymbols.setVisible(selected);
+				btnEditSymbols.setVisible(selected);
+				btnDeleteSymbols.setVisible(selected);
+				btnAddSymbols.setVisible(selected);
+				if (selected && symbolsTabPane == null) {
 					List<String> symbols = null;
 					int i = 0;
 					while (i != -1) {
@@ -348,7 +350,6 @@ public class FrontEnd {
 		toolBarManage.add(btnToggleSymbols);
 
 		btnEditSymbols = new JButton(editIcon);
-		btnEditSymbols.setVisible(false);
 		btnEditSymbols.setFocusable(false);
 		btnEditSymbols.setToolTipText("Edit selected set of symbols");
 		btnEditSymbols.addActionListener(new ActionListener() {
@@ -374,7 +375,6 @@ public class FrontEnd {
 		toolBarManage.add(btnEditSymbols);
 
 		btnAddSymbols = new JButton(addIcon);
-		btnAddSymbols.setVisible(false);
 		btnAddSymbols.setFocusable(false);
 		btnAddSymbols.setToolTipText("Add new set of symbols");
 		btnAddSymbols.addActionListener(new ActionListener() {
@@ -389,7 +389,6 @@ public class FrontEnd {
 		toolBarManage.add(btnAddSymbols);
 		
 		btnDeleteSymbols = new JButton(removeIcon);
-		btnDeleteSymbols.setVisible(false);
 		btnDeleteSymbols.setFocusable(false);
 		btnDeleteSymbols.setToolTipText("Delete selected set of symbols");
 		btnDeleteSymbols.addActionListener(new ActionListener() {
@@ -556,7 +555,6 @@ public class FrontEnd {
 		toolBar.add(btnPost);
 		
 		panelSymbols = new JPanel();
-		panelSymbols.setVisible(false);
 		panelSymbols.setLayout(new BorderLayout(0, 0));
 		
 		panelContent = new JPanel();
@@ -868,7 +866,12 @@ public class FrontEnd {
 			}
 			
 			dividerLocation = prefs.getInt(Constants.PROPERTY_DIVIDER_LOCATION, -1);
-			btnToggleSymbols.setSelected(prefs.getBoolean(Constants.PROPERTY_SYMBOLS_ENABLED, false));
+			SwingUtilities.invokeLater(new Runnable() {
+				@Override
+				public void run() {
+					btnToggleSymbols.setSelected(prefs.getBoolean(Constants.PROPERTY_SYMBOLS_ENABLED, true));
+				}
+			});
 			
 			statusTextArea.requestFocusInWindow();
 
@@ -944,6 +947,7 @@ public class FrontEnd {
 
 	private Component getSymbolCtrl(String symbol) {
 		final JLabel lblSymbol = new JLabel(symbol);
+		lblSymbol.setForeground(Color.BLACK);
 		lblSymbol.setFont(statusTextArea.getFont());
 		lblSymbol.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
 		lblSymbol.addMouseListener(new MouseAdapter() {

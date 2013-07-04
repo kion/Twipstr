@@ -15,7 +15,7 @@ public class TwitterStatusDocument extends PlainDocument {
 	private static final long serialVersionUID = 8965138264795255409L;
 	
 	public void insertString(int offset, String str, AttributeSet attr) throws BadLocationException {
-		if (str == null || str.equals("\n")) return;
+		if (str == null) return;
 		super.insertString(offset, str, attr);
 	}
 

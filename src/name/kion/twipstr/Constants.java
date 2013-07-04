@@ -19,8 +19,7 @@ import twitter4j.media.MediaProvider;
  */
 public interface Constants {
 	
-	public static final String APP_INFO_NAME = "~ Twipstr ~";
-	public static final String APP_INFO_NAME_AND_VERSION = "~ Twipstr 1.2.0 ~";
+	public static final String APP_INFO_NAME_AND_VERSION = "~ Twipstr 1.2.5 ~";
 	public static final String APP_INFO_URL = "http://twipstr.sf.net";
 	public static final String APP_INFO_AUTHOR = "© R. Kasianenko | kion";
 	public static final String APP_INFO_AUTHOR_URL = "http://kion.name";
@@ -68,8 +67,8 @@ public interface Constants {
 		}
 	}};
     
-    public static final int DEFAULT_WINDOW_WIDTH = 965;
-    public static final int DEFAULT_WINDOW_HEIGHT = 195;
+    public static final int DEFAULT_WINDOW_WIDTH = 1000;
+    public static final int DEFAULT_WINDOW_HEIGHT = 300;
     
     public static final String PROPERTY_WINDOW_COORDINATE_X = "WINDOW_COORDINATE_X";
     public static final String PROPERTY_WINDOW_COORDINATE_Y = "WINDOW_COORDINATE_Y";
