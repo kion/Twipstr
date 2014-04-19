@@ -112,7 +112,7 @@ public interface Constants {
 	public static final Color COLOR_SYMBOL_HIGHLIGHT = new Color(98, 127, 125);
 
 	public static final Color COLOR_OK = new Color(0, 136, 0);
-    public static final Color COLOR_WARNING = new Color(255, 255, 0);
+    public static final Color COLOR_WARNING = new Color(255, 128, 0);
     public static final Color COLOR_CLOSE_TO_LIMIT = new Color(201, 0, 0);
     public static final Color COLOR_OVER_LIMIT = new Color(255, 0, 0);
 
