@@ -26,6 +26,7 @@ import twitter4j.StatusUpdate;
 import twitter4j.Twitter;
 import twitter4j.TwitterException;
 import twitter4j.TwitterFactory;
+import twitter4j.UploadedMedia;
 import twitter4j.auth.AccessToken;
 import twitter4j.auth.RequestToken;
 import twitter4j.conf.Configuration;
@@ -49,7 +50,6 @@ public class BackEnd {
 	private static Set<File> attachedMediaFiles;
 
 	// API configuration
-	private static int maxMediaPerUpload;
 	private static int charactersReservedPerMedia;
 	
 	private BackEnd() {
@@ -157,7 +157,6 @@ public class BackEnd {
 	}
 	
 	private static void loadAPIConfiguration() throws TwitterException {
-		maxMediaPerUpload = twitter.getAPIConfiguration().getMaxMediaPerUpload();
 		charactersReservedPerMedia = twitter.getAPIConfiguration().getCharactersReservedPerMedia();
 	}
 	
@@ -217,8 +216,6 @@ public class BackEnd {
 				confBuilder.setOAuthAccessTokenSecret(twitter.getOAuthAccessToken().getTokenSecret());
 				if (MediaProvider.TWITPIC.name().equals(mpName)) {
 					confBuilder.setMediaProviderAPIKey(Constants.TWITPIC_TWIPSTR_API_KEY);
-				} else if (MediaProvider.PLIXI.name().equals(mpName)) {
-					confBuilder.setMediaProviderAPIKey(Constants.PLIXI_TWIPSTR_API_KEY);
 				} else if (MediaProvider.MOBYPICTURE.name().equals(mpName)) {
 					confBuilder.setMediaProviderAPIKey(Constants.MOBYPICTURE_TWIPSTR_API_KEY);
 				}
@@ -236,13 +233,8 @@ public class BackEnd {
 		if (attachedMediaFiles == null) {
 			attachedMediaFiles = new HashSet<File>();
 		}
-		if (attachedMediaFiles.size() < maxMediaPerUpload) {
-			attachedMediaFiles.add(mediaFile);
-			return charactersReservedPerMedia;
-		} else {
-			throw new BackEndException("You can't attach more media files, max number of media attachments allowed: " + maxMediaPerUpload + 
-										"\nYou may try to choose another image-upload service in preferences.");
-		}
+		attachedMediaFiles.add(mediaFile);
+		return charactersReservedPerMedia;
 	}
 	
 	public static int cancelMedia(String mediaFilePath) {
@@ -263,11 +255,14 @@ public class BackEnd {
 	public static boolean updateStatus(String status) throws BackEndException {
 		try {
 			StatusUpdate statusUpdate = new StatusUpdate(status);
-			if (attachedMediaFiles != null) {
+			if (attachedMediaFiles != null && !attachedMediaFiles.isEmpty()) {
+				long[] mediaIds = new long[attachedMediaFiles.size()];
+				int idx = 0;
 				for (File mediaFile : attachedMediaFiles) {
-					// it should theoretically be possible to attach more than one media file
-					statusUpdate.setMedia(mediaFile);
+					UploadedMedia media = twitter.uploadMedia(mediaFile);
+					mediaIds[idx++] = media.getMediaId();
 				}
+				statusUpdate.setMediaIds(mediaIds);
 			}
 			twitter.updateStatus(statusUpdate);
 			attachedMediaFiles = null;

@@ -19,7 +19,7 @@ import twitter4j.media.MediaProvider;
  */
 public interface Constants {
 	
-	public static final String APP_INFO_NAME_AND_VERSION = "~ Twipstr 1.2.5 ~";
+	public static final String APP_INFO_NAME_AND_VERSION = "~ Twipstr 1.3.0 ~";
 	public static final String APP_INFO_URL = "http://twipstr.sf.net";
 	public static final String APP_INFO_AUTHOR = "© R. Kasianenko | kion";
 	public static final String APP_INFO_AUTHOR_URL = "http://kion.name";
@@ -43,12 +43,9 @@ public interface Constants {
 		DEFAULT_MEDIA_PROVIDER,
 		MediaProvider.YFROG.name(),
 		MediaProvider.TWITPIC.name(),
-		MediaProvider.TWITGOO.name(),
 		MediaProvider.TWIPPLE.name(),
 		MediaProvider.MOBYPICTURE.name(),
-		MediaProvider.IMG_LY.name(),
-		MediaProvider.PLIXI.name(),
-		MediaProvider.POSTEROUS.name()
+		MediaProvider.IMG_LY.name()
 	};
 	
 	public static final String TWITPIC_TWIPSTR_API_KEY = "9e03e2868fc10ef51329bc698b65e227";
