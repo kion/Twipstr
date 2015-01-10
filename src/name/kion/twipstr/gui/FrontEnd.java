@@ -543,7 +543,7 @@ public class FrontEnd {
 		btnPost.setHorizontalTextPosition(SwingConstants.LEFT);
 		btnPost.setText("" + maxLength);
 		btnPost.setToolTipText("Number Of Characters Left");
-		btnPost.setFont(Constants.FONT);
+		btnPost.setFont(Constants.FONT_BIG);
 		btnPost.setForeground(Constants.COLOR_OK);
 		btnPost.setToolTipText("POST!");
 		btnPost.addActionListener(new ActionListener() {
@@ -567,7 +567,7 @@ public class FrontEnd {
 		panelContent.add(statusTextArea, BorderLayout.CENTER);
 		statusTextArea.setBackground(Constants.TEXT_BG_COLOR);
 		statusTextArea.setBorder(new LineBorder(Constants.TEXT_BG_COLOR, 15));
-		statusTextArea.setFont(Constants.FONT);
+		statusTextArea.setFont(Constants.FONT_BIG);
 		statusTextArea.setLineWrap(true);
 		statusTextArea.setWrapStyleWord(true);
 		statusTextArea.getDocument().addDocumentListener(new DocumentListener() {
@@ -828,7 +828,7 @@ public class FrontEnd {
 			
 			int fontSize = prefs.getInt(Constants.PROPERTY_FONT_SIZE, -1);
 			if (fontSize != -1) {
-				Font font = new Font(Constants.FONT.getName(), Constants.FONT.getStyle(), fontSize);
+				Font font = Constants.FONT_BIG.deriveFont(fontSize);
 				statusTextArea.setFont(font);
 			}
 			
@@ -894,7 +894,7 @@ public class FrontEnd {
 					prefs.remove(Constants.PROPERTY_TEXT);
 				}
 				
-				if (statusTextArea.getFont().getSize() != Constants.FONT.getSize()) {
+				if (statusTextArea.getFont().getSize() != Constants.FONT_BIG.getSize()) {
 					prefs.putInt(Constants.PROPERTY_FONT_SIZE, statusTextArea.getFont().getSize());
 				} else {
 					prefs.remove(Constants.PROPERTY_FONT_SIZE);
@@ -975,6 +975,7 @@ public class FrontEnd {
 	private void renderSymbols(List<String> symbols) {
 		if (symbolsTabPane == null) {
 			symbolsTabPane = new JTabbedPane(JTabbedPane.TOP);
+			symbolsTabPane.setFont(Constants.FONT_SMALL);			
 			symbolsTabPane.setFocusable(false);
 			panelSymbols.add(symbolsTabPane, BorderLayout.CENTER);
 			TabMoveListener tabMoveListener = new TabMoveListener(new Runnable() {
@@ -1043,7 +1044,7 @@ public class FrontEnd {
 		}
 		addTextAreaKeyListener(editSymbolsTextArea);
 		editSymbolsTextArea.setLineWrap(true);
-		editSymbolsTextArea.setFont(Constants.FONT);
+		editSymbolsTextArea.setFont(Constants.FONT_BIG);
 		editSymbolsTextArea.setBorder(new LineBorder(Constants.TEXT_BG_COLOR, 15));
 		editSymbolsTextArea.setBackground(Color.WHITE);
 		JScrollPane editSymbolsScrollPane = new JScrollPane(editSymbolsTextArea);

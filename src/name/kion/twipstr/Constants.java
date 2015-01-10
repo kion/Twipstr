@@ -7,10 +7,12 @@ import java.awt.Color;
 import java.awt.Font;
 import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.Properties;
 
 import javax.swing.UIManager;
 import javax.swing.UIManager.LookAndFeelInfo;
 
+import name.kion.twipstr.util.FontUtils;
 import name.kion.twipstr.util.ResourceLoader;
 import twitter4j.media.MediaProvider;
 
@@ -19,7 +21,7 @@ import twitter4j.media.MediaProvider;
  */
 public interface Constants {
 	
-	public static final String APP_INFO_NAME_AND_VERSION = "~ Twipstr 1.3.0 ~";
+	public static final String APP_INFO_NAME_AND_VERSION = "~ Twipstr 1.3.1 ~";
 	public static final String APP_INFO_URL = "http://twipstr.sf.net";
 	public static final String APP_INFO_AUTHOR = "© R. Kasianenko | kion";
 	public static final String APP_INFO_AUTHOR_URL = "http://kion.name";
@@ -29,14 +31,16 @@ public interface Constants {
 			"<br/><br/>• {Ctrl+Z} to undo" +
 			"<br/>• {Ctrl+Y} to redo" +
 		"</html>";
+	
+	static final Properties PROPERTIES = ResourceLoader.loadProperties("/name/kion/twipstr/config.properties");
 
-	public static final String CONSUMER_KEY = "RGyto8KxCFIWgMW3joYNiQ";
-	public static final String CONSUMER_SECRET = "1NCV3Ky5qklc8q9ZMk2WJfSNn2w5b4EX7HrhPt1pcP4";
+	public static final String CONSUMER_KEY = PROPERTIES.getProperty("CONSUMER_KEY");
+	public static final String CONSUMER_SECRET = PROPERTIES.getProperty("CONSUMER_SECRET");
 	
 	public static final String PROPERTY_ACCESS_TOKEN = "ACCESS_TOKEN";
     
-	public static final String BITLY_TWIPSTR_USERNAME = "twipstr";
-	public static final String BITLY_TWIPSTR_API_KEY = "R_bfb4f98b9f8fc792909e5024295d98b1";
+	public static final String BITLY_TWIPSTR_USERNAME = PROPERTIES.getProperty("BITLY_TWIPSTR_USERNAME");
+	public static final String BITLY_TWIPSTR_API_KEY = PROPERTIES.getProperty("BITLY_TWIPSTR_API_KEY");
 	
 	public static final String DEFAULT_MEDIA_PROVIDER = MediaProvider.TWITTER.name();
 	public static final String[] SUPPORTED_MEDIA_PROVIDERS = new String[]{
@@ -48,9 +52,9 @@ public interface Constants {
 		MediaProvider.IMG_LY.name()
 	};
 	
-	public static final String TWITPIC_TWIPSTR_API_KEY = "9e03e2868fc10ef51329bc698b65e227";
-	public static final String PLIXI_TWIPSTR_API_KEY = "038b9de7-d718-44d4-b248-e9674b29b7d6";
-	public static final String MOBYPICTURE_TWIPSTR_API_KEY = "pctMliDQDWLimJNo";
+	public static final String TWITPIC_TWIPSTR_API_KEY = PROPERTIES.getProperty("TWITPIC_TWIPSTR_API_KEY");
+	public static final String PLIXI_TWIPSTR_API_KEY = PROPERTIES.getProperty("PLIXI_TWIPSTR_API_KEY");
+	public static final String MOBYPICTURE_TWIPSTR_API_KEY = PROPERTIES.getProperty("MOBYPICTURE_TWIPSTR_API_KEY");
 	
     public static final String DEFAULT_SYMBOLS =
     		ResourceLoader.loadAsText("/".concat(Constants.class.getPackage().getName().replaceAll("\\.", "/")).concat("/res/").concat("symbols.txt"));
@@ -98,7 +102,8 @@ public interface Constants {
 	public static final String PROPERTY_USERPREF_MEDIA_PROVIDER = "MEDIA_PROVIDER";
 	public static final String PROPERTY_LAF = "LOOK_AND_FEEL";
 
-    public static final Font FONT = new Font(Font.SANS_SERIF, Font.PLAIN, 28);
+    public static final Font FONT_SMALL = FontUtils.getFont("symbola", 12);
+    public static final Font FONT_BIG = FontUtils.getFont("symbola", 28);
     
     public static final int LENGTH_WARNING = 30;
     public static final int LENGTH_LIMIT = 10;
