@@ -9,6 +9,10 @@ package name.kion.twipstr.util;
  * @author kion
  */
 public class CommonUtils {
+	
+	private CommonUtils() {
+        // hidden default constructor
+	}
 
     public static String getFailureDetails(Throwable t) {
         StringBuffer msg = new StringBuffer();

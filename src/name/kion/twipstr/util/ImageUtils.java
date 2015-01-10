@@ -22,6 +22,10 @@ import org.w3c.dom.Node;
  * @author kion
  */
 public class ImageUtils {
+	
+	private ImageUtils() {
+        // hidden default constructor
+	}
 
 	public static Image getScaledImage(File file, int width, int height) throws Exception {
 		return getScaledImage(Toolkit.getDefaultToolkit().getImage(file.toURI().toURL()), width, height);
