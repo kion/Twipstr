@@ -16,6 +16,9 @@ import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JTextField;
 
+import com.rosaloves.bitlyj.Bitly;
+import com.rosaloves.bitlyj.Jmp;
+
 import name.kion.twipstr.Constants;
 import name.kion.twipstr.Twipstr;
 import name.kion.twipstr.exception.BackEndException;
@@ -35,9 +38,6 @@ import twitter4j.media.ImageUpload;
 import twitter4j.media.ImageUploadFactory;
 import twitter4j.media.MediaProvider;
 
-import com.rosaloves.bitlyj.Bitly;
-import com.rosaloves.bitlyj.Jmp;
-
 /**
  * @author kion
  */
@@ -45,8 +45,8 @@ public class BackEnd {
 	
 	private static Twitter twitter;
 	
-	private static ImageUpload imageUpload;
-	
+    private static ImageUpload imageUpload;
+    
 	private static Set<File> attachedMediaFiles;
 
 	// API configuration
@@ -191,35 +191,15 @@ public class BackEnd {
 		}
 	}
 	
-	public static void resetImageUploadService() {
-		imageUpload = null;
-	}
-	
-	public static boolean usingSeparateImageUploading() {
-		Preferences prefs = loadPreferences();
-		String mpName = prefs.get(Constants.PROPERTY_USERPREF_MEDIA_PROVIDER, Constants.DEFAULT_MEDIA_PROVIDER);
-		if (MediaProvider.TWITTER.name().equals(mpName)) {
-			return false;
-		}
-		return true;
-	}
-	
 	public static String uploadImage(File imageFile) throws BackEndException {
 		try {
 			if (imageUpload == null) {
-				Preferences prefs = loadPreferences();
-				String mpName = prefs.get(Constants.PROPERTY_USERPREF_MEDIA_PROVIDER, Constants.DEFAULT_MEDIA_PROVIDER);
 				ConfigurationBuilder confBuilder = new ConfigurationBuilder();
 				confBuilder.setOAuthConsumerKey(Constants.CONSUMER_KEY);
 				confBuilder.setOAuthConsumerSecret(Constants.CONSUMER_SECRET);
 				confBuilder.setOAuthAccessToken(twitter.getOAuthAccessToken().getToken());
 				confBuilder.setOAuthAccessTokenSecret(twitter.getOAuthAccessToken().getTokenSecret());
-				if (MediaProvider.TWITPIC.name().equals(mpName)) {
-					confBuilder.setMediaProviderAPIKey(Constants.TWITPIC_TWIPSTR_API_KEY);
-				} else if (MediaProvider.MOBYPICTURE.name().equals(mpName)) {
-					confBuilder.setMediaProviderAPIKey(Constants.MOBYPICTURE_TWIPSTR_API_KEY);
-				}
-				confBuilder.setMediaProvider(mpName);
+				confBuilder.setMediaProvider(MediaProvider.TWITTER.name());
 				Configuration config = confBuilder.build();
 				imageUpload = new ImageUploadFactory(config).getInstance();
 			}

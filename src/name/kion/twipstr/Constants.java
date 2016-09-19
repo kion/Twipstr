@@ -14,14 +14,13 @@ import javax.swing.UIManager.LookAndFeelInfo;
 
 import name.kion.twipstr.util.FontUtils;
 import name.kion.twipstr.util.ResourceLoader;
-import twitter4j.media.MediaProvider;
 
 /**
  * @author kion
  */
 public interface Constants {
 	
-	public static final String APP_INFO_NAME_AND_VERSION = "~ Twipstr 1.3.1 ~";
+	public static final String APP_INFO_NAME_AND_VERSION = "~ Twipstr 1.3.5 ~";
 	public static final String APP_INFO_URL = "http://twipstr.sf.net";
 	public static final String APP_INFO_AUTHOR = "© R. Kasianenko | kion";
 	public static final String APP_INFO_AUTHOR_URL = "http://kion.name";
@@ -32,7 +31,9 @@ public interface Constants {
 			"<br/>• {Ctrl+Y} to redo" +
 		"</html>";
 	
-	static final Properties PROPERTIES = ResourceLoader.loadProperties("/name/kion/twipstr/config.properties");
+	public static final int MAX_STATUS_LENGTH = 140;
+    
+	public static final Properties PROPERTIES = ResourceLoader.loadProperties("/name/kion/twipstr/config.properties");
 
 	public static final String CONSUMER_KEY = PROPERTIES.getProperty("CONSUMER_KEY");
 	public static final String CONSUMER_SECRET = PROPERTIES.getProperty("CONSUMER_SECRET");
@@ -41,20 +42,6 @@ public interface Constants {
     
 	public static final String BITLY_TWIPSTR_USERNAME = PROPERTIES.getProperty("BITLY_TWIPSTR_USERNAME");
 	public static final String BITLY_TWIPSTR_API_KEY = PROPERTIES.getProperty("BITLY_TWIPSTR_API_KEY");
-	
-	public static final String DEFAULT_MEDIA_PROVIDER = MediaProvider.TWITTER.name();
-	public static final String[] SUPPORTED_MEDIA_PROVIDERS = new String[]{
-		DEFAULT_MEDIA_PROVIDER,
-		MediaProvider.YFROG.name(),
-		MediaProvider.TWITPIC.name(),
-		MediaProvider.TWIPPLE.name(),
-		MediaProvider.MOBYPICTURE.name(),
-		MediaProvider.IMG_LY.name()
-	};
-	
-	public static final String TWITPIC_TWIPSTR_API_KEY = PROPERTIES.getProperty("TWITPIC_TWIPSTR_API_KEY");
-	public static final String PLIXI_TWIPSTR_API_KEY = PROPERTIES.getProperty("PLIXI_TWIPSTR_API_KEY");
-	public static final String MOBYPICTURE_TWIPSTR_API_KEY = PROPERTIES.getProperty("MOBYPICTURE_TWIPSTR_API_KEY");
 	
     public static final String DEFAULT_SYMBOLS =
     		ResourceLoader.loadAsText("/".concat(Constants.class.getPackage().getName().replaceAll("\\.", "/")).concat("/res/").concat("symbols.txt"));
@@ -99,7 +86,6 @@ public interface Constants {
     public static final String PROPERTY_USERPREF_CLOSE_WINDOW_AFTER_SUCCESSFUL_STATUS_UPDATE = "CLOSE_WINDOW_AFTER_SUCCESSFUL_STATUS_UPDATE";
     public static final String PROPERTY_USERPREF_BITLY_USERNAME = "BITLY_USERNAME";
     public static final String PROPERTY_USERPREF_BITLY_API_KEY = "BITLY_API_KEY";
-	public static final String PROPERTY_USERPREF_MEDIA_PROVIDER = "MEDIA_PROVIDER";
 	public static final String PROPERTY_LAF = "LOOK_AND_FEEL";
 
     public static final Font FONT_SMALL = FontUtils.getFont("symbola", 12);

@@ -113,8 +113,6 @@ public class FrontEnd {
 	
 	private Map<String, String> symbolMap;
 	
-	private int maxLength = 140;
-	
 	private int dividerLocation = -1;
 	private int dividerSize;
 	
@@ -239,18 +237,11 @@ public class FrontEnd {
 				});
 				JCheckBox cbCloseAfterSuccessfulStatusUpdate = new JCheckBox("Close Twipstr window after successful status update");
 				cbCloseAfterSuccessfulStatusUpdate.setSelected(prefs.getBoolean(Constants.PROPERTY_USERPREF_CLOSE_WINDOW_AFTER_SUCCESSFUL_STATUS_UPDATE, false));
-				JLabel labelImageUploadService = new JLabel("Preferred image upload service:");
-				JComboBox<String> cbImageUploadService = new JComboBox<String>();
-				for (String mp : Constants.SUPPORTED_MEDIA_PROVIDERS) {
-					cbImageUploadService.addItem(mp);
-				}
-				String currentMediaProvider = prefs.get(Constants.PROPERTY_USERPREF_MEDIA_PROVIDER, Constants.DEFAULT_MEDIA_PROVIDER);
-				cbImageUploadService.setSelectedItem(currentMediaProvider);
 				JLabel labelBitly = new JLabel(
 						"<html>" +
-						"<br/>If you want to track statistics for j.mp/bit.ly URL-shortening," +
-						"<br/>provide your j.mp/bit.ly username & API-key below." +
-						"<br/>Note: you must be a registered j.mp/bit.ly user; you can get your API-key here:");
+						"<br/>If you want to track statistics for bit.ly/j.mp URL-shortening," +
+						"<br/>provide your bit.ly/j.mp username & API-key below." +
+						"<br/>Note: you must be a registered bit.ly/j.mp user; you can get your API-key here:");
 				JLabel labelBitlyUsername = new JLabel("Username:");
 				JTextField tfBitlyUsername = new JTextField(prefs.get(Constants.PROPERTY_USERPREF_BITLY_USERNAME, ""));
 				JLabel labelBitlyApiKey = new JLabel("API-key:");
@@ -274,7 +265,6 @@ public class FrontEnd {
 						new Component[] { 
 								labelLAF, cbLAF,
 								cbCloseAfterSuccessfulStatusUpdate, 
-								labelImageUploadService, cbImageUploadService,
 								labelBitly, labelBitlyApiKeyLink,
 								labelBitlyUsername, tfBitlyUsername, 
 								labelBitlyApiKey, tfBitlyApiKey,
@@ -284,11 +274,6 @@ public class FrontEnd {
 						JOptionPane.PLAIN_MESSAGE, 
 						prefsIcon);
 				prefs.putBoolean(Constants.PROPERTY_USERPREF_CLOSE_WINDOW_AFTER_SUCCESSFUL_STATUS_UPDATE, cbCloseAfterSuccessfulStatusUpdate.isSelected());
-				String selectedMediaProvider = cbImageUploadService.getSelectedItem().toString();
-				if (!selectedMediaProvider.equals(currentMediaProvider)) {
-					BackEnd.resetImageUploadService();
-				}
-				prefs.put(Constants.PROPERTY_USERPREF_MEDIA_PROVIDER, selectedMediaProvider);
 				if (!Validator.isNullOrBlank(tfBitlyUsername.getText()) && !Validator.isNullOrBlank(tfBitlyApiKey.getText())) {
 					prefs.put(Constants.PROPERTY_USERPREF_BITLY_USERNAME, tfBitlyUsername.getText());
 					prefs.put(Constants.PROPERTY_USERPREF_BITLY_API_KEY, tfBitlyApiKey.getText());
@@ -474,21 +459,10 @@ public class FrontEnd {
 							try {
 								File imageFile = jFileChooser.getSelectedFile();
 								if (imageFile != null) {
-									String imageURL;
-									if (BackEnd.usingSeparateImageUploading()) {
-				                		imageURL = BackEnd.uploadImage(imageFile);
-				                		if (!Validator.isNullOrBlank(imageURL)) {
-											insertURLWithSmartSpacing(imageURL);
-				                		}
-									} else {
-										maxLength -= BackEnd.attachMedia(imageFile);
-										updateCounter();
-										imageURL = imageFile.getAbsolutePath();
-									}
-		                			attachImage(imageFile, imageURL);
+		                			attachImage(imageFile, imageFile.getAbsolutePath());
 								}
-							} catch (BackEndException bee) {
-								NotificationService.errorMessage(bee, frameTwipstr);
+							} catch (Exception e) {
+								NotificationService.errorMessage(e, frameTwipstr);
 							} finally {
 								btnAttach.setIcon(attachIcon);
 								btnAttach.setText("");
@@ -541,7 +515,7 @@ public class FrontEnd {
 		btnPost = new JButton(postIcon);
 		btnPost.setFocusable(false);
 		btnPost.setHorizontalTextPosition(SwingConstants.LEFT);
-		btnPost.setText("" + maxLength);
+		btnPost.setText("" + Constants.MAX_STATUS_LENGTH);
 		btnPost.setToolTipText("Number Of Characters Left");
 		btnPost.setFont(Constants.FONT_BIG);
 		btnPost.setForeground(Constants.COLOR_OK);
@@ -742,15 +716,6 @@ public class FrontEnd {
 					public void mouseClicked(MouseEvent e) {
 						removeVisibleImagePanel(ip);
 						panelImages.remove(imageFrame);
-						String imageURL = ip.getName();
-						int idx = statusTextArea.getText().indexOf(imageURL);
-						if (idx != -1) {
-							statusTextArea.replaceRange("", idx, idx + imageURL.length());
-							statusTextArea.setCaretPosition(idx);
-						} else {
-							maxLength += BackEnd.cancelMedia(ip.getName());
-							updateCounter();
-						}
 						if (imagePanelsVisible.isEmpty()) {
 							panelImages.setVisible(false);
 						}
@@ -847,10 +812,6 @@ public class FrontEnd {
 					if (imagePath != null) {
 						File imageFile = new File(imagePath);
 						if (imageFile.exists()) {
-							if (!imageURL.startsWith("http")) {
-								maxLength -= BackEnd.attachMedia(imageFile);
-								updateCounter();
-							}
 							attachImage(imageFile, imageURL);
 						}
 					}
@@ -1089,7 +1050,7 @@ public class FrontEnd {
 	}
 	
 	private void updateCounter() {
-		int charsLeft = maxLength - statusTextArea.getText().length();
+		int charsLeft = Constants.MAX_STATUS_LENGTH - statusTextArea.getText().length();
 		Color color;
 		if (charsLeft < 0) {
 			color = Constants.COLOR_OVER_LIMIT;
@@ -1116,9 +1077,8 @@ public class FrontEnd {
 	
 	private void postStatus() {
 		try {
-			if (!Validator.isNullOrBlank(statusTextArea.getText()) && statusTextArea.getText().length() <= maxLength) {
+			if (!Validator.isNullOrBlank(statusTextArea.getText()) && statusTextArea.getText().length() <= Constants.MAX_STATUS_LENGTH) {
 				if (BackEnd.updateStatus(statusTextArea.getText())) {
-					maxLength = 140;
 					statusTextArea.setText("");
 					undoManager.discardAllEdits();
 					if (imagePanelsVisible != null) {
