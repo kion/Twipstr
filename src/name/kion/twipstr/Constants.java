@@ -20,7 +20,7 @@ import name.kion.twipstr.util.ResourceLoader;
  */
 public interface Constants {
 	
-	public static final String APP_INFO_NAME_AND_VERSION = "~ Twipstr 1.3.5 ~";
+	public static final String APP_INFO_NAME_AND_VERSION = "~ Twipstr 1.3.6 ~";
 	public static final String APP_INFO_URL = "http://twipstr.sf.net";
 	public static final String APP_INFO_AUTHOR = "© R. Kasianenko | kion";
 	public static final String APP_INFO_AUTHOR_URL = "http://kion.name";

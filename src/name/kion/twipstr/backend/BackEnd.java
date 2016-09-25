@@ -49,9 +49,6 @@ public class BackEnd {
     
 	private static Set<File> attachedMediaFiles;
 
-	// API configuration
-	private static int charactersReservedPerMedia;
-	
 	private BackEnd() {
 		// hidden default constructor
 	}
@@ -115,7 +112,6 @@ public class BackEnd {
 			if (twitterAuthorized) {
 				BackEnd.storeAccessToken(accessToken);
 				BackEnd.twitter = twitter;
-				loadAPIConfiguration();
 			} else {
 				NotificationService.errorMessage("Application has not been authorized!");
 				System.exit(0);
@@ -154,10 +150,6 @@ public class BackEnd {
 		} catch (Throwable cause) {
 			throw new BackEndException("Failed to store access token!", cause);
 		}
-	}
-	
-	private static void loadAPIConfiguration() throws TwitterException {
-		charactersReservedPerMedia = twitter.getAPIConfiguration().getCharactersReservedPerMedia();
 	}
 	
 	public static Preferences loadPreferences() {
@@ -209,15 +201,14 @@ public class BackEnd {
 		}
 	}
 	
-	public static int attachMedia(File mediaFile) throws BackEndException {
+	public static void attachMedia(File mediaFile) throws BackEndException {
 		if (attachedMediaFiles == null) {
 			attachedMediaFiles = new HashSet<File>();
 		}
 		attachedMediaFiles.add(mediaFile);
-		return charactersReservedPerMedia;
 	}
 	
-	public static int cancelMedia(String mediaFilePath) {
+	public static void cancelMedia(String mediaFilePath) {
 		if (attachedMediaFiles != null) {
 			for (File f : attachedMediaFiles) {
 				if (f.getAbsolutePath().equals(mediaFilePath)) {
@@ -229,7 +220,6 @@ public class BackEnd {
 		if (attachedMediaFiles.isEmpty()) {
 			attachedMediaFiles = null;
 		}
-		return charactersReservedPerMedia;
 	}
 	
 	public static boolean updateStatus(String status) throws BackEndException {
