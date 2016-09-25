@@ -640,6 +640,8 @@ public class FrontEnd {
 	
 	private void attachImage(File imageFile, String imageURL) {
 		try {
+            BackEnd.attachMedia(imageFile);
+            
 			ImagePanel imagePanel = ImagePanelFactory.buildImagePanel(imageFile, Constants.IMG_BG_COLOR);
 
 			imagePanel.setPreferredSize(getImageSize());
@@ -714,6 +716,7 @@ public class FrontEnd {
 				removeImageLink.addMouseListener(new MouseAdapter() {
 					@Override
 					public void mouseClicked(MouseEvent e) {
+                        BackEnd.cancelMedia(ip.getName());                      
 						removeVisibleImagePanel(ip);
 						panelImages.remove(imageFrame);
 						if (imagePanelsVisible.isEmpty()) {
