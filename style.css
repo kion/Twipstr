@@ -1,6 +1,17 @@
+@font-face {
+  font-family: 'Play';
+  font-style: normal;
+  font-weight: 400;
+  src: local('Play'), url(fonts/Play.woff2) format('woff2'), url(fonts/Play.woff) format('woff');
+}
+
+#instructions {
+  font-family: Play;
+}
+
 .content {
-	text-align: center;
 	font-family: "Palatino Linotype", Palatino, Garamond, Georgia, "Times New Roman", Times, serif;
+	text-align: center;
 	font-size: 1.25em;
 }
 
@@ -19,7 +30,6 @@
 
 .download {
 	color: #00008F;
-	font-family: Garamond, Georgia, "Times New Roman", Times, serif;
 	font-size: 1.5em;
 	font-weight: bold;
 }
@@ -29,11 +39,17 @@
 	text-decoration: none;
 }
 
-.copyright {
-	font-family: Garamond, Georgia, "Times New Roman", Times, serif;
-	font-weight: bold;
+#footer {
+    margin-top: 50px;
+    border-top: 1px solid #ccc;
 }
 
 #ohloh-badge {
 	margin: 15px 0px;
 }
+
+.copyright {
+	font-weight: bold;
+}
+
+
