@@ -28,9 +28,7 @@ sudo add-apt-repository ppa:ki0n/desktop-apps && sudo apt-get update && sudo apt
 * Otherwise, use one of the download options below:
 
 	* [DEB](https://github.com/kion/Twipstr/releases/download/v1.4.0/twipstr.deb) (Debian based Linux distros, e.g. Ubuntu)
-	* [JAR](https://github.com/kion/Twipstr/releases/download/v1.4.0/twipstr.jar) (put downloaded file into a folder of your choice and double-click it or run it using "java -jar twipstr.jar" command)
-
-* If you've installed Twipstr via PPA or DEB, run it using "Applications -> Internet -> Twipstr" menu item or "twipstr" command
+	* [JAR](https://github.com/kion/Twipstr/releases/download/v1.4.0/twipstr.jar) (Cross-Platform: Linux, Mac OS X, Windows, etc. - put downloaded file into a folder of your choice and double-click it or run it using "java -jar twipstr.jar" command)
 
 * If you're updating from previous version and want to get new pictograms/emojis, go to settings and click "Reset symbols"!
 
