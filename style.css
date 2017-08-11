@@ -28,15 +28,30 @@
 	margin: 25px 0px;
 }
 
-.download {
-	color: #00008F;
-	font-size: 1.5em;
-	font-weight: bold;
+#instructions {
+    width: 50%;
+    margin: 0 auto;
 }
 
-.download a {
-	color: #8F0000;
-	text-decoration: none;
+.download-header, .download-options {
+  font-size: 1.5em;
+}
+
+.download-header {
+  color: #00008F;
+  font-weight: bold;
+}
+
+.download-options {
+  text-align: left;
+  width: 78%;
+  margin: 0 auto;
+}
+
+.download-options a {
+  color: #8F0000;
+  font-weight: bold;
+  text-decoration: none;
 }
 
 #footer {
