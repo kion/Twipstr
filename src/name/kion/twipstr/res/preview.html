@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <title>Twitter Emoji (Twemoji) Preview</title>
+    <meta charset="UTF-8"> 
+    <meta name="viewport" content="width=device-width,initial-scale=1.0">
+    <style>
+    ul.emoji-list * {
+      -webkit-user-select: none;
+      -moz-user-select: none;
+      -ms-user-select: none;
+      user-select: none;
+    }
+    ul.emoji-list li {
+      font-size: 36px;
+      float: left;
+      display: inline-block;
+      padding: 2px;
+      margin: 4px;
+    }
+    img.emoji {
+      cursor: pointer;
+      height: 1em;
+      width: 1em;
+      margin: 0 .05em 0 .1em;
+      vertical-align: -0.1em;
+    }
+    #status-content {
+        width: 1000px;
+        font-size: 2.4em;
+        margin: 0 auto;
+    }
+    #status-content img.media {
+        width: 1000px;
+    }
+    body {
+        background-color: #e6ecf0;
+    }
+    </style>
+    <script src="http://twemoji.maxcdn.com/twemoji.min.js"></script>
+  </head>
+  <body>
+    <div id="status-content"><!--%STATUS_CONTENT%--></div>
+    <script>
+    twemoji.parse(document.getElementById('status-content'), {"size":72});
+    </script>
+  </body>
+</html>

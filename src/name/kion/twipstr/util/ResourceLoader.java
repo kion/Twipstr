@@ -19,14 +19,13 @@ public class ResourceLoader {
 	
 	public static String loadAsText(String path) {
 		String text = null;
-		try (BufferedInputStream bis = new BufferedInputStream(ResourceLoader.class.getResourceAsStream(path))) {
-	        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+		try (BufferedInputStream bis = new BufferedInputStream(ResourceLoader.class.getResourceAsStream(path)); 
+	         ByteArrayOutputStream baos = new ByteArrayOutputStream()) {
 	        byte[] buffer = new byte[1024];
 	        int br;
 	        while ((br = bis.read(buffer)) > 0) {
 	            baos.write(buffer, 0, br);
 	        }
-	        baos.close();
 	        text = new String(baos.toByteArray(), "UTF-8");
 		} catch (Throwable cause) {
 			cause.printStackTrace(System.err);

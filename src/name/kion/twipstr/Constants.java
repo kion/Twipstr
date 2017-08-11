@@ -20,16 +20,10 @@ import name.kion.twipstr.util.ResourceLoader;
  */
 public interface Constants {
 	
-	public static final String APP_INFO_NAME_AND_VERSION = "~ Twipstr 1.3.6 ~";
+	public static final String APP_INFO_NAME_AND_VERSION = "~ Twipstr 1.4.0 ~";
 	public static final String APP_INFO_URL = "https://kion.github.io/Twipstr";
-	public static final String APP_INFO_AUTHOR = "© R. Kasianenko | kion";
+	public static final String APP_INFO_AUTHOR = "© Kion";
 	public static final String APP_INFO_AUTHOR_URL = "http://kion.name";
-	public static final String APP_INFO_HELP = 
-		"<html>" +
-			"<br/><b>Editing tips:</b>" +
-			"<br/><br/>• {Ctrl+Z} to undo" +
-			"<br/>• {Ctrl+Y} to redo" +
-		"</html>";
 	
 	public static final int MAX_STATUS_LENGTH = 140;
     
@@ -46,6 +40,14 @@ public interface Constants {
     public static final String DEFAULT_SYMBOLS =
     		ResourceLoader.loadAsText("/".concat(Constants.class.getPackage().getName().replaceAll("\\.", "/")).concat("/res/").concat("symbols.txt"));
 
+    public static final String PREVIEW_TEMPLATE =
+            ResourceLoader.loadAsText("/".concat(Constants.class.getPackage().getName().replaceAll("\\.", "/")).concat("/res/").concat("preview.html"));
+    
+    public static final String PREVIEW_TEMPLATE_STATUS_CONTENT_PLACEHOLDER = "<!--%STATUS_CONTENT%-->";
+    
+    public static final String PREVIEW_FILE_NAME_PREFIX = "twipstr_";
+    public static final String PREVIEW_FILE_NAME_SUFFIX = "_preview.html";
+    
 	public static final String DEFAULT_LAF = "System/Default";
 	@SuppressWarnings("serial")
 	public static final Map<String, String> SUPPORTED_LAFS = new LinkedHashMap<String, String>(){{
@@ -87,9 +89,11 @@ public interface Constants {
     public static final String PROPERTY_USERPREF_BITLY_USERNAME = "BITLY_USERNAME";
     public static final String PROPERTY_USERPREF_BITLY_API_KEY = "BITLY_API_KEY";
 	public static final String PROPERTY_LAF = "LOOK_AND_FEEL";
+	
+	public static final double DEFAULT_DIVIDER_LOCATION = 0.25;
 
     public static final Font FONT_SMALL = FontUtils.getFont("symbola", 12);
-    public static final Font FONT_BIG = FontUtils.getFont("symbola", 28);
+    public static final Font FONT_BIG = FontUtils.getFont("symbola", 32);
     
     public static final int LENGTH_WARNING = 30;
     public static final int LENGTH_LIMIT = 10;

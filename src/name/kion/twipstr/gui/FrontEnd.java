@@ -3,6 +3,7 @@
  */
 package name.kion.twipstr.gui;
 
+import java.awt.AWTEvent;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Component;
@@ -13,9 +14,13 @@ import java.awt.Dimension;
 import java.awt.EventQueue;
 import java.awt.FlowLayout;
 import java.awt.Font;
+import java.awt.GraphicsEnvironment;
 import java.awt.GridLayout;
+import java.awt.KeyEventDispatcher;
+import java.awt.KeyboardFocusManager;
 import java.awt.Point;
 import java.awt.Toolkit;
+import java.awt.event.AWTEventListener;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.ComponentAdapter;
@@ -33,6 +38,7 @@ import java.awt.event.WindowEvent;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -71,9 +77,14 @@ import javax.swing.event.UndoableEditListener;
 import javax.swing.text.BadLocationException;
 import javax.swing.undo.UndoManager;
 
+import javafx.application.Platform;
+import javafx.embed.swing.JFXPanel;
+import javafx.scene.Scene;
+import javafx.scene.web.WebView;
 import name.kion.twipstr.Constants;
 import name.kion.twipstr.backend.BackEnd;
 import name.kion.twipstr.exception.BackEndException;
+import name.kion.twipstr.util.FSUtils;
 import name.kion.twipstr.util.Validator;
 
 /**
@@ -90,8 +101,9 @@ public class FrontEnd {
 	final ImageIcon editIcon = new ImageIcon(FrontEnd.class.getResource("/name/kion/twipstr/res/edit.png"));
 	final ImageIcon addIcon = new ImageIcon(FrontEnd.class.getResource("/name/kion/twipstr/res/add.png"));
 	final ImageIcon removeIcon = new ImageIcon(FrontEnd.class.getResource("/name/kion/twipstr/res/remove.png"));
-	final ImageIcon textDecrIcon = new ImageIcon(FrontEnd.class.getResource("/name/kion/twipstr/res/text-decr.png"));
-	final ImageIcon textIncrIcon = new ImageIcon(FrontEnd.class.getResource("/name/kion/twipstr/res/text-incr.png"));
+	final ImageIcon fontDecrIcon = new ImageIcon(FrontEnd.class.getResource("/name/kion/twipstr/res/font-decr.png"));
+	final ImageIcon fontIncrIcon = new ImageIcon(FrontEnd.class.getResource("/name/kion/twipstr/res/font-incr.png"));
+    final ImageIcon previewIcon = new ImageIcon(FrontEnd.class.getResource("/name/kion/twipstr/res/preview.png"));
 	final ImageIcon postIcon = new ImageIcon(FrontEnd.class.getResource("/name/kion/twipstr/res/post.png"));
 	
 	private UndoManager undoManager = new UndoManager();
@@ -117,9 +129,11 @@ public class FrontEnd {
 	private int dividerSize;
 	
 	private JFrame frameTwipstr;
+	private JFrame framePreview;
 	private JPanel panelMain;
 	private JToolBar toolBar;
 	private JButton btnPost;
+	private JButton btnPreview;
 	private JTextArea statusTextArea;
 	private JPanel panelControl;
 	private JToolBar toolBarManage;
@@ -138,11 +152,14 @@ public class FrontEnd {
 	private JButton btnAddSymbols;
 	private JSplitPane splitPane;
 	private JPanel panelContent;
+	private JFXPanel previewPanel;
+	private WebView webView;
 
 	/**
 	 * Launch the application.
 	 */
 	public static void init() {
+        Platform.setImplicitExit(false);
 		EventQueue.invokeLater(new Runnable() {
 			public void run() {
 				try {
@@ -165,8 +182,36 @@ public class FrontEnd {
 	 * Create the application.
 	 */
 	private FrontEnd() {
+	    initGlobalEventListeners();
 		initGUI();
 		restoreState();
+	}
+	
+	private void initGlobalEventListeners() {
+        KeyboardFocusManager manager = KeyboardFocusManager.getCurrentKeyboardFocusManager();
+        manager.addKeyEventDispatcher(new KeyEventDispatcher() {
+            @Override
+            public boolean dispatchKeyEvent(KeyEvent e) {
+                if (e.getID() == KeyEvent.KEY_PRESSED && e.getKeyCode() == KeyEvent.VK_ESCAPE) {
+                    if ("preview".equals(((Component) e.getSource()).getName())) {
+                        framePreview.dispatchEvent(new WindowEvent(framePreview, WindowEvent.WINDOW_CLOSING));
+                    }
+                }
+                return false;
+            }
+        });
+        Toolkit.getDefaultToolkit().addAWTEventListener(new AWTEventListener() {
+            public void eventDispatched(AWTEvent event) {
+                if (event instanceof MouseEvent) {
+                    MouseEvent evt = (MouseEvent) event;
+                    if (evt.getID() == MouseEvent.MOUSE_CLICKED) {
+                        if ("preview".equals(((Component) evt.getSource()).getName())) {
+                            framePreview.dispatchEvent(new WindowEvent(framePreview, WindowEvent.WINDOW_CLOSING));
+                        }
+                    }
+                }
+            }
+        }, AWTEvent.MOUSE_EVENT_MASK);
 	}
 
 	/**
@@ -192,16 +237,15 @@ public class FrontEnd {
 		
 		btnInfo = new JButton(infoIcon);
 		btnInfo.setFocusable(false);
-		btnInfo.setToolTipText("About & Help");
+		btnInfo.setToolTipText("About");
 		btnInfo.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				LinkLabel info = new LinkLabel(Constants.APP_INFO_NAME_AND_VERSION, Constants.APP_INFO_URL);
 				LinkLabel author = new LinkLabel(Constants.APP_INFO_AUTHOR, Constants.APP_INFO_AUTHOR_URL);
-				JLabel help = new JLabel(Constants.APP_INFO_HELP);
 				JOptionPane.showMessageDialog(
-						frameTwipstr, 
-						new Component[]{ info, author, help }, 
+						null, 
+						new Component[]{ info, author }, 
 						"Twipstr :: About & Help", 
 						JOptionPane.PLAIN_MESSAGE, infoIcon);
 				statusTextArea.requestFocusInWindow();
@@ -261,7 +305,7 @@ public class FrontEnd {
 					}
 				});
 				JOptionPane.showMessageDialog(
-						frameTwipstr, 
+						null, 
 						new Component[] { 
 								labelLAF, cbLAF,
 								cbCloseAfterSuccessfulStatusUpdate, 
@@ -300,7 +344,7 @@ public class FrontEnd {
 					if (dividerLocation > dividerSize) {
 						splitPane.setDividerLocation(dividerLocation);
 					} else {
-						splitPane.setDividerLocation(0.25);
+						splitPane.setDividerLocation(Constants.DEFAULT_DIVIDER_LOCATION);
 					}
 				}
 				splitPane.setDividerSize(selected ? dividerSize : 0);
@@ -378,7 +422,7 @@ public class FrontEnd {
 		btnDeleteSymbols.setToolTipText("Delete selected set of symbols");
 		btnDeleteSymbols.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-				int opt = JOptionPane.showConfirmDialog(frameTwipstr, 
+				int opt = JOptionPane.showConfirmDialog(null, 
 						"Selected set of symbols will be deleted", 
 						"Delete symbols", JOptionPane.OK_CANCEL_OPTION);
 				if (opt == JOptionPane.OK_OPTION) {
@@ -396,7 +440,7 @@ public class FrontEnd {
 
 		toolBarManage.addSeparator();
 		
-		btnDecreaseFontSize = new JButton(textDecrIcon);
+		btnDecreaseFontSize = new JButton(fontDecrIcon);
 		btnDecreaseFontSize.setFocusable(false);
 		btnDecreaseFontSize.setToolTipText("Decrease Font Size");
 		btnDecreaseFontSize.addActionListener(new ActionListener() {
@@ -405,7 +449,7 @@ public class FrontEnd {
 				Font font = statusTextArea.getFont();
 				int size = font.getSize();
 				if (size > 2) size--;
-				font = new Font(font.getName(), font.getStyle(), size);
+				font = font.deriveFont((float) size);
 				statusTextArea.setFont(font);
 				updateSymbolsFontSize(font);
 				statusTextArea.requestFocusInWindow();
@@ -413,7 +457,7 @@ public class FrontEnd {
 		});
 		toolBarManage.add(btnDecreaseFontSize);
 		
-		btnIncreaseFontSize = new JButton(textIncrIcon);
+		btnIncreaseFontSize = new JButton(fontIncrIcon);
 		btnIncreaseFontSize.setFocusable(false);
 		btnIncreaseFontSize.setToolTipText("Increase Font Size");
 		btnIncreaseFontSize.addActionListener(new ActionListener() {
@@ -422,7 +466,7 @@ public class FrontEnd {
 				Font font = statusTextArea.getFont();
 				int size = font.getSize();
 				size++;
-				font = new Font(font.getName(), font.getStyle(), size);
+                font = font.deriveFont((float) size);
 				statusTextArea.setFont(font);
 				updateSymbolsFontSize(font);
 				statusTextArea.requestFocusInWindow();
@@ -438,21 +482,19 @@ public class FrontEnd {
 		toolBar.addSeparator();
 		btnAttach = new JButton(attachIcon);
 		btnAttach.setFocusable(false);
-		btnAttach.setToolTipText("Attach...");
+		btnAttach.setToolTipText("Attach Image");
 		btnAttach.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				final ImageFileChooser jFileChooser = new ImageFileChooser(false); // only image files are supported so far...
+				final ImageFileChooser jFileChooser = new ImageFileChooser(false);
+				jFileChooser.setDialogTitle("Twipstr :: Attach Image");
 				if (lastFileChooserDir != null) {
 					jFileChooser.setCurrentDirectory(lastFileChooserDir);
 				}
                 jFileChooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
-                int rVal = jFileChooser.showOpenDialog(frameTwipstr);
+                int rVal = jFileChooser.showOpenDialog(null);
                 if (rVal == JFileChooser.APPROVE_OPTION) {
                 	lastFileChooserDir = jFileChooser.getCurrentDirectory();
-					btnAttach.setIcon(progressIcon);
-					btnAttach.setText("Uploading...");
-					btnAttach.setEnabled(false);
 					SwingUtilities.invokeLater(new Runnable() {
 						@Override
 						public void run() {
@@ -464,9 +506,6 @@ public class FrontEnd {
 							} catch (Exception e) {
 								NotificationService.errorMessage(e, frameTwipstr);
 							} finally {
-								btnAttach.setIcon(attachIcon);
-								btnAttach.setText("");
-								btnAttach.setEnabled(true);
 								statusTextArea.requestFocusInWindow();
 							}
 						}
@@ -479,11 +518,11 @@ public class FrontEnd {
 		toolBar.add(btnAttach);
 		btnShortenURL = new JButton(linkIcon);
 		btnShortenURL.setFocusable(false);
-		btnShortenURL.setToolTipText("Insert/Shorten URL");
+		btnShortenURL.setToolTipText("Shorten URL");
 		btnShortenURL.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				final String url = JOptionPane.showInputDialog(frameTwipstr, "Original URL:");
+				final String url = JOptionPane.showInputDialog(frameTwipstr, "URL to shorten:", "Twipstr :: Shorten URL", JOptionPane.PLAIN_MESSAGE);
 				if (!Validator.isNullOrBlank(url)) {
 					btnShortenURL.setIcon(progressIcon);
 					btnShortenURL.setText("Shortening...");
@@ -510,16 +549,30 @@ public class FrontEnd {
 		});
 		
 		toolBar.add(btnShortenURL);
+		
 		toolBar.addSeparator();
+		
+        btnPreview = new JButton(previewIcon);
+        btnPreview.setFocusable(false);
+        btnPreview.setHorizontalTextPosition(SwingConstants.RIGHT);
+        btnPreview.setText("PREVIEW");
+        btnPreview.setFont(Constants.FONT_BIG);
+        btnPreview.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                preview();
+            }
+        });
+        toolBar.add(btnPreview);
+
+        toolBar.addSeparator();
 		
 		btnPost = new JButton(postIcon);
 		btnPost.setFocusable(false);
 		btnPost.setHorizontalTextPosition(SwingConstants.LEFT);
 		btnPost.setText("" + Constants.MAX_STATUS_LENGTH);
-		btnPost.setToolTipText("Number Of Characters Left");
 		btnPost.setFont(Constants.FONT_BIG);
 		btnPost.setForeground(Constants.COLOR_OK);
-		btnPost.setToolTipText("POST!");
 		btnPost.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
@@ -529,12 +582,17 @@ public class FrontEnd {
 		toolBar.add(btnPost);
 		
 		panelSymbols = new JPanel();
+        panelSymbols.setPreferredSize(new Dimension(250, 200));
+		panelSymbols.setMinimumSize(new Dimension(250, 200));
 		panelSymbols.setLayout(new BorderLayout(0, 0));
 		
 		panelContent = new JPanel();
+        panelContent.setPreferredSize(new Dimension(750, 200));
+        panelContent.setMinimumSize(new Dimension(750, 200));
 		panelContent.setLayout(new BorderLayout(0, 0));
 		
 		panelImages = new JPanel();
+		panelImages.setPreferredSize(new Dimension(180, 0));
 		panelContent.add(panelImages, BorderLayout.EAST);
 		
 		statusTextArea = new JTextArea(new TwitterStatusDocument());
@@ -577,13 +635,64 @@ public class FrontEnd {
 		splitPane.setRightComponent(panelContent);
 		splitPane.setLeftComponent(panelSymbols);
 		dividerSize = splitPane.getDividerSize();
-		splitPane.addPropertyChangeListener(new PropertyChangeListener() {
+		splitPane.addPropertyChangeListener("dividerLocation", new PropertyChangeListener() {
 			@Override
 			public void propertyChange(PropertyChangeEvent evt) {
-				if (splitPane.getDividerLocation() > 0) dividerLocation = splitPane.getDividerLocation();
+				if (splitPane.getDividerLocation() > 0) {
+	                if ((double) splitPane.getDividerLocation() / splitPane.getWidth() < Constants.DEFAULT_DIVIDER_LOCATION) {
+	                    splitPane.setDividerLocation(Constants.DEFAULT_DIVIDER_LOCATION);
+	                }
+				    dividerLocation = splitPane.getDividerLocation();
+				}
 			}
 		});
 		panelMain.add(splitPane, BorderLayout.CENTER);
+		frameTwipstr.addComponentListener(new ComponentAdapter() {  
+	        public void componentResized(ComponentEvent evt) {
+                splitPane.setDividerLocation(Constants.DEFAULT_DIVIDER_LOCATION);
+	        }
+		});
+	}
+	
+    private JFXPanel getPreviewPanel() {
+        if (previewPanel == null) {
+            previewPanel = new JFXPanel();
+            previewPanel.setName("preview");
+            previewPanel.setPreferredSize(new Dimension(frameTwipstr.getToolkit().getScreenSize().width, frameTwipstr.getToolkit().getScreenSize().height));
+        }
+        Platform.runLater(() -> {
+            try {
+                if (webView == null) {
+                    webView = new WebView();
+                    webView.getEngine().setJavaScriptEnabled(true);
+                    previewPanel.setScene(new Scene(webView));
+                }
+                String content = statusTextArea.getText();
+                if (imageFiles != null) {
+                    for (String img : imageFiles.values()) {
+                        content += "<img class=\"media\" src=\"" + img + "\">";
+                    }
+                }
+                String html = Constants.PREVIEW_TEMPLATE.replace(Constants.PREVIEW_TEMPLATE_STATUS_CONTENT_PLACEHOLDER, content);
+                File tmpFile = File.createTempFile(Constants.PREVIEW_FILE_NAME_PREFIX, Constants.PREVIEW_FILE_NAME_SUFFIX);
+                tmpFile.deleteOnExit();
+                FSUtils.writeFile(tmpFile, html);
+                webView.getEngine().load("file://" + tmpFile);
+            } catch (IOException ioe) {
+                ioe.printStackTrace(System.err);
+            }
+        });
+        return previewPanel;
+    }
+
+	private void preview() {
+        framePreview = new JFrame("Twipstr :: Preview");
+        framePreview.setUndecorated(true);
+        framePreview.setAlwaysOnTop(true);
+        framePreview.getContentPane().setPreferredSize(Toolkit.getDefaultToolkit().getScreenSize());
+        framePreview.getContentPane().add(getPreviewPanel());
+        GraphicsEnvironment.getLocalGraphicsEnvironment().getDefaultScreenDevice().setFullScreenWindow(framePreview);
+        framePreview.setVisible(true);
 	}
 	
 	private Component getFirstParentComponent(Component child, Class<? extends Component> parentClass) {
@@ -603,7 +712,8 @@ public class FrontEnd {
 						if (undoManager.canUndo()) {
 							undoManager.undo();
 						}
-					} else if (e.getModifiers() == KeyEvent.CTRL_MASK && e.getKeyCode() == KeyEvent.VK_Y) {
+					} else if ((e.isControlDown() && e.isShiftDown() && e.getKeyCode() == KeyEvent.VK_Z) 
+				        || e.getModifiers() == KeyEvent.CTRL_MASK && e.getKeyCode() == KeyEvent.VK_Y) {
 						if (undoManager.canRedo()) {
 							undoManager.redo();
 						}
@@ -640,22 +750,23 @@ public class FrontEnd {
 	
 	private void attachImage(File imageFile, String imageURL) {
 		try {
-            BackEnd.attachMedia(imageFile);
-            
-			ImagePanel imagePanel = ImagePanelFactory.buildImagePanel(imageFile, Constants.IMG_BG_COLOR);
+		    if (imageFiles == null || !imageFiles.keySet().contains(imageURL)) {
+	            BackEnd.attachMedia(imageFile);
+	            
+	            ImagePanel imagePanel = ImagePanelFactory.buildImagePanel(imageFile, Constants.IMG_BG_COLOR);
 
-			imagePanel.setPreferredSize(getImageSize());
-			imagePanel.setName(imageURL);
+	            imagePanel.setPreferredSize(getImageSize());
+	            imagePanel.setName(imageURL);
 
-			addVisibleImagePanel(imagePanel);
-			
-			if (imageFiles == null) {
-				imageFiles = new HashMap<String, String>();
-			}
-			imageFiles.put(imageURL, imageFile.getAbsolutePath());
-			
-			reLayoutImages();
-			
+	            addVisibleImagePanel(imagePanel);
+	            
+	            if (imageFiles == null) {
+	                imageFiles = new HashMap<String, String>();
+	            }
+	            imageFiles.put(imageURL, imageFile.getAbsolutePath());
+	            
+	            reLayoutImages();
+		    }
 		} catch (Throwable cause) {
 			cause.printStackTrace(System.err);
 		}
@@ -699,11 +810,10 @@ public class FrontEnd {
 	}
 	
 	private void reLayoutImages() {
+        panelImages.setVisible(false);
 		panelImages.removeAll();
-		if (imagePanelsVisible == null || imagePanelsVisible.isEmpty()) {
-			panelImages.setVisible(false);
-		} else {
-			panelImages.setLayout(new GridLayout(1, imagePanelsVisible.size()));
+		if (imagePanelsVisible != null && !imagePanelsVisible.isEmpty()) {
+			panelImages.setLayout(new GridLayout(imagePanelsVisible.size(), 1));
 			for (final ImagePanel ip : imagePanelsVisible) {
 				final JPanel imageFrame = new JPanel(new BorderLayout());
 				imageFrame.setName(ip.getName());
@@ -719,9 +829,8 @@ public class FrontEnd {
                         BackEnd.cancelMedia(ip.getName());                      
 						removeVisibleImagePanel(ip);
 						panelImages.remove(imageFrame);
-						if (imagePanelsVisible.isEmpty()) {
-							panelImages.setVisible(false);
-						}
+						imageFiles.remove(ip.getName());
+						reLayoutImages();
 						statusTextArea.requestFocusInWindow();
 					}
 				});
@@ -796,7 +905,7 @@ public class FrontEnd {
 			
 			int fontSize = prefs.getInt(Constants.PROPERTY_FONT_SIZE, -1);
 			if (fontSize != -1) {
-				Font font = Constants.FONT_BIG.deriveFont(fontSize);
+				Font font = Constants.FONT_BIG.deriveFont((float) fontSize);
 				statusTextArea.setFont(font);
 			}
 			
@@ -939,7 +1048,7 @@ public class FrontEnd {
 	private void renderSymbols(List<String> symbols) {
 		if (symbolsTabPane == null) {
 			symbolsTabPane = new JTabbedPane(JTabbedPane.TOP);
-			symbolsTabPane.setFont(Constants.FONT_SMALL);			
+			symbolsTabPane.setFont(Constants.FONT_SMALL);		
 			symbolsTabPane.setFocusable(false);
 			panelSymbols.add(symbolsTabPane, BorderLayout.CENTER);
 			TabMoveListener tabMoveListener = new TabMoveListener(new Runnable() {
@@ -1015,7 +1124,7 @@ public class FrontEnd {
 		editSymbolsScrollPane.setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
 		editSymbolsScrollPane.setPreferredSize(new Dimension(symbolsTabPane.getWidth(), symbolsTabPane.getHeight()));
 		editSymbolsTextArea.getDocument().addUndoableEditListener(undoableEditListener);
-		int opt = JOptionPane.showConfirmDialog(frameTwipstr, editSymbolsScrollPane, "Edit Symbols", JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE);
+		int opt = JOptionPane.showConfirmDialog(null, editSymbolsScrollPane, "Twipstr :: Edit Symbols", JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE);
 		if (opt == JOptionPane.OK_OPTION) {
 			return editSymbolsTextArea.getText();
 		}
