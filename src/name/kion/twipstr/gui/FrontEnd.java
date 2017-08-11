@@ -667,7 +667,7 @@ public class FrontEnd {
                     webView.getEngine().setJavaScriptEnabled(true);
                     previewPanel.setScene(new Scene(webView));
                 }
-                String content = statusTextArea.getText();
+                String content = statusTextArea.getText().replaceAll("\n", "<br/>");
                 if (imageFiles != null) {
                     for (String img : imageFiles.values()) {
                         content += "<img class=\"media\" src=\"" + img + "\">";
