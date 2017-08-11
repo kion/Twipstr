@@ -6,15 +6,15 @@ Twipstr :: Makes it more fun to update your Twitter status!
 
 ***
 
-Well... There's a plenty of Twitter clients out there, I know.
-Lot of them make it fun to *read* your Twitter stream.
-But I had no luck to find one that makes it really fun to *update* your Twitter status.
-That is why I decided to create Twipstr.
-It's minimalistic, but it does its job well.
-And you'll love those handy pictograms!
-Created for people who want to post tastefully ;)
+_Well... There's a plenty of Twitter clients out there, I know._
+_Lot of them make it fun to *read* your Twitter stream._
+_But I had no luck to find one that makes it really fun to *update* your Twitter status._
+_That is why I decided to create Twipstr._
+_It's minimalistic, but it does its job well._
+_And you'll love those handy pictograms!_
+_Created for people who want to post tastefully ;)_
 
-BTW, Twipstr is cross-platform, so it will run on any modern operation system: Linux, Mac OS X, Windows...
+_BTW, Twipstr is cross-platform, so it will run on any modern operation system: Linux, Mac OS X, Windows..._
 
 ***
 
