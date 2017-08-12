@@ -674,10 +674,12 @@ public class FrontEnd {
                     }
                 }
                 String html = Constants.PREVIEW_TEMPLATE.replace(Constants.PREVIEW_TEMPLATE_STATUS_CONTENT_PLACEHOLDER, content);
-                File tmpFile = File.createTempFile(Constants.PREVIEW_FILE_NAME_PREFIX, Constants.PREVIEW_FILE_NAME_SUFFIX);
-                tmpFile.deleteOnExit();
-                FSUtils.writeFile(tmpFile, html);
-                webView.getEngine().load("file://" + tmpFile);
+                if (!Constants.PREVIEW_FILE.exists()) {
+                    Constants.PREVIEW_FILE.createNewFile();
+                    Constants.PREVIEW_FILE.deleteOnExit();
+                }
+                FSUtils.writeFile(Constants.PREVIEW_FILE, html);
+                webView.getEngine().load("file://" + Constants.PREVIEW_FILE);
             } catch (IOException ioe) {
                 ioe.printStackTrace(System.err);
             }

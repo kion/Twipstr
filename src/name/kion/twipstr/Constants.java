@@ -5,6 +5,7 @@ package name.kion.twipstr;
 
 import java.awt.Color;
 import java.awt.Font;
+import java.io.File;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Properties;
@@ -45,8 +46,7 @@ public interface Constants {
     
     public static final String PREVIEW_TEMPLATE_STATUS_CONTENT_PLACEHOLDER = "<!--%STATUS_CONTENT%-->";
     
-    public static final String PREVIEW_FILE_NAME_PREFIX = "twipstr_";
-    public static final String PREVIEW_FILE_NAME_SUFFIX = "_preview.html";
+    public static final File PREVIEW_FILE = new File(System.getProperty("java.io.tmpdir"), "twipstr_preview.html");
     
 	public static final String DEFAULT_LAF = "System/Default";
 	@SuppressWarnings("serial")
