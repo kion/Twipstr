@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <project default="createRunJar" name="Twipstr">
+    <property file="build.properties" />
     <target name="createRunJar">
         <jar destfile="build/twipstr.jar" filesetmanifest="mergewithoutmain">
             <manifest>
@@ -10,6 +11,14 @@
             <zipfileset excludes="META-INF/*.SF" src="lib/twitter4j-core-4.0.5.jar"/>
             <zipfileset excludes="META-INF/*.SF" src="lib/twitter4j-media-support-4.0.5.jar"/>
             <zipfileset excludes="META-INF/*.SF" src="lib/bitlyj-2.0.0.jar"/>
+            <zipfileset src="${javafx.home}/lib/javafx.base.jar"/>
+            <zipfileset src="${javafx.home}/lib/javafx.controls.jar"/>
+            <zipfileset src="${javafx.home}/lib/javafx.fxml.jar"/>
+            <zipfileset src="${javafx.home}/lib/javafx.graphics.jar"/>
+            <zipfileset src="${javafx.home}/lib/javafx.media.jar"/>
+            <zipfileset src="${javafx.home}/lib/javafx.swing.jar"/>
+            <zipfileset src="${javafx.home}/lib/javafx.web.jar"/>
+            <fileset dir="${javafx.home}/lib" includes="*.so"/>
         </jar>
     </target>
 </project>
