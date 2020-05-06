@@ -22,7 +22,7 @@ _BTW, Twipstr is cross-platform, so it will run on any modern operation system: 
 
 * If you're running Ubuntu, it's recommended to install Twipstr via PPA-repository using the following command:
 ```
-sudo add-apt-repository ppa:ki0n/desktop-apps && sudo apt-get update && sudo apt-get install twipstr
+sudo add-apt-repository ppa:ki0n/software && sudo apt-get update && sudo apt-get install twipstr
 ```
 
 * Otherwise, use one of the download options below:
